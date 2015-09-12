@@ -1,3 +1,2 @@
 This is the Ubuntu version of Stanford HAB SSTV + SSDV.
 Run the main.py to get the main balloon infinite loop
-Run initializeBalloon.py to just quickly test the SSTV and SSDV
