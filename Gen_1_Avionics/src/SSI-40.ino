@@ -9,7 +9,6 @@
 /*********************************************************************
                             SETUP
 *********************************************************************/
-
 /* ****************  LIBRARY IMPORTS  ****************  */
 #include <SD.h>
 #include <SPI.h>
@@ -27,8 +26,8 @@
 String   MISSION_NUMBER   = "SSI-40";
 String   CSV_DATA_HEADER  = "TIME,MILLIS,LOOP,VOLTAGE,ALT_GPS,ALT_BMP,TEMP_IN,TEMP_EXT,LAT,LONG,SPEED_GPS,PRESS_BMP,CURRENT,PRESS_MS5803,TEMP_MS5803,MESSAGES SENT";
 bool     ENABLE_CUTDOWN   = false;
-bool     CUTDOWN_ALTITUDE = false;
 bool     CUTDOWN_GPS      = false;
+uint16_t CUTDOWN_ALT      = 30000;
 uint16_t DEBUG_ALT        = 1000;
 uint16_t MAX_ALT          = 30000;
 double   MAX_LAT          = 0;
@@ -102,6 +101,7 @@ float  overflowSeconds      = 0.0;
 float  lastGPSCall          = 0.0;
 float  lastLEDCall          = 0.0;
 byte   gps_set_sucess       = 0;
+byte   RB_set_sucess       = 0;
 size_t bufferSize           = 0;
 uint8_t setNav[] = {
   0xB5, 0x62, 0x06, 0x24, 0x24, 0x00, 0xFF, 0xFF, 0x06, 0x03, 0x00, 0x00, 0x00, 0x00, 0x10, 0x27, 0x00, 0x00,
@@ -180,6 +180,7 @@ bool ISBDCallback(){
   runHeaters();
   runCutdown();
   updateTiming();
+  RB_set_sucess = 1;
   return true;
 }
 
@@ -244,10 +245,10 @@ static void writeLEDS(void){
     if(ALTITUDE_BMP > -20 && ALTITUDE_BMP < 200){
       mcp.digitalWrite(P_GOOD, HIGH);
     }
-    if(1){
+    if(RB_set_sucess){
       mcp.digitalWrite(RB_GOOD, HIGH);
     }
-    if(LAT != 1000.0 && LONG != 1000.0){
+    if(LAT != 1000.0 && LAT != 0.0 && LONG != 1000.0 && LONG != 0.0){
       mcp.digitalWrite(GPS_GOOD, HIGH);
     }
     if(digitalRead(SD_CD) == 0){
@@ -321,7 +322,11 @@ static void runHeaters(void){
    This function cuts down at a set altitude. 
 */
 static void runCutdown(void){
-  mcp.digitalWrite(CUTDOWN, HIGH);
+  if(ALTITUDE_BMP > CUTDOWN_ALT){
+    mcp.digitalWrite(CUTDOWN, HIGH);
+    smartDelay(30000);
+    mcp.digitalWrite(CUTDOWN, LOW);
+  }
 }
 
 /*
