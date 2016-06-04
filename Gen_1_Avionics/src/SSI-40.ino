@@ -1,6 +1,6 @@
 /*
    Stanford Student Space Initiative
-   Balloons Avionics Launch 3 | April 2016
+   Balloons Avionics Launch 3 | May 2016
    Davy Ragland   | dragland@stanford.edu
    Kirill Safin   | ksafin@stanford.edu
    Aria Tedjarati | satedjarati@stanford.edu
@@ -23,34 +23,34 @@
 #include <Adafruit_MCP23017.h>
 
 /* ****************  EDITABLE CONSTANTS  ****************  */
-String   MISSION_NUMBER   = "SSI-40";
-String   CSV_DATA_HEADER  = "TIME,MILLIS,LOOP,VOLTAGE,ALT_GPS,ALT_BMP,ASCENT_RATE,TEMP_IN,TEMP_EXT,LAT,LONG,SPEED_GPS,PRESS_BMP,CURRENT,PRESS_MS5803,TEMP_MS5803,MESSAGES SENT";
-bool     ENABLE_CUTDOWN   = true;
+String    MISSION_NUMBER   = "SSI-40";
+String    CSV_DATA_HEADER  = "TIME,MILLIS,LOOP,VOLTAGE,ALT_GPS,ALT_BMP,ASCENT_RATE,TEMP_IN,TEMP_EXT,LAT,LONG,SPEED_GPS,PRESS_BMP,CURRENT,PRESS_MS5803,TEMP_MS5803,CUTDOWN_STATE,MESSAGES SENT";
+bool      ENABLE_CUTDOWN   = true;
 const int AscentRateSize   = 200;
-uint16_t CUTDOWN_ALT      = 30000;
-uint16_t DEBUG_ALT        = 1000;
-uint16_t HEATER_SETPOINT  = 0;
+uint16_t  CUTDOWN_ALT      = 26000;
+uint16_t  DEBUG_ALT        = 300;
+uint16_t  HEATER_SETPOINT  = 0;
 
 /* ****************  TEENSY PIN OUTS  ****************  */
-uint8_t SD_CD             =   2;
-uint8_t ROCKBLOCK_SLEEP   =   9;
-uint8_t SD_CS             =  10;
-uint8_t VMON              =  14;
-uint8_t IMON              =  15;
-uint8_t BMP280_CS         =  20;
-uint8_t THERMOCPL_CS      =  22;
+uint8_t  SD_CD             =   2;
+uint8_t  ROCKBLOCK_SLEEP   =   9;
+uint8_t SD_CS              =  10;
+uint8_t VMON               =  14;
+uint8_t IMON               =  15;
+uint8_t BMP280_CS          =  20;
+uint8_t THERMOCPL_CS       =  22;
 
 /* ****************  MULTIPLEXER PIN OUTS  ****************  */
-uint8_t HEARTBEAT         =   0;
-uint8_t I_GOOD            =   1;
-uint8_t T_GOOD            =   2;
-uint8_t P_GOOD            =   3;
-uint8_t RB_GOOD           =   4;
-uint8_t GPS_GOOD          =   5;
-uint8_t SD_GOOD           =   6;
-uint8_t BAT_GOOD          =   7;
-uint8_t CUTDOWN           =   9;
-uint8_t HEATER            =  10;
+uint8_t HEARTBEAT          =   0;
+uint8_t I_GOOD             =   1;
+uint8_t T_GOOD             =   2;
+uint8_t P_GOOD             =   3;
+uint8_t RB_GOOD            =   4;
+uint8_t GPS_GOOD           =   5;
+uint8_t SD_GOOD            =   6;
+uint8_t BAT_GOOD           =   7;
+uint8_t CUTDOWN            =   9;
+uint8_t HEATER             =  10;
 
 /* ****************  GLOBAL OBJECTS  ****************  */
 #define HWSERIAL Serial1
@@ -89,7 +89,7 @@ boolean       getUBX_ACK(uint8_t *MSG);
 /*********************************************************************
                              DATA
  *********************************************************************/
-float  commBeaconInterval   = 2.0; 
+float  commBeaconInterval   = 0.05; 
 float  COMM_BEACON_INTERVAL = 2.0;  
 double minutes              = 0.0;
 float  loopStartTime        = 0.0;
@@ -117,6 +117,7 @@ double  TEMP_IN       = 0;
 double  TEMP_EXT      = 0;
 float   LAT           = 0;
 float   LONG          = 0;
+bool    CUTDOWN_STATE = 0;
 int     messagesSent  = 0;
 double  SPEED_GPS     = 0;
 double  PRESS_BMP     = 0;   
@@ -161,6 +162,7 @@ void loop() {
   runCutdown();
   satelliteTransmission();
   updateTiming();
+  smartDelay(100);
 }
 /**********************************************************************
                            FUNCTIONS
@@ -181,6 +183,7 @@ bool ISBDCallback(){
   runHeaters();
   runCutdown();
   updateTiming();
+  smartDelay(100);
   RB_set_sucess = 1;
   return true;
 }
@@ -193,16 +196,11 @@ bool ISBDCallback(){
 */
 static void readData(void){
   unsigned long age;
-  // Poll once/minute
-  if(millis() - lastGPSCall > 60000){
-    smartDelay(30);
-    gps.f_get_position(&LAT, &LONG, &age);
-    ALTITUDE_GPS = gps.f_altitude();
-    SPEED_GPS    = gps.f_speed_kmph();
-    lastGPSCall  = millis();
-    printToSerialAndLog("Calling GPS");
-  }
-  // Poll every loop
+  gps.f_get_position(&LAT, &LONG, &age);
+  ALTITUDE_GPS = gps.f_altitude();
+  SPEED_GPS    = gps.f_speed_kmph();
+  lastGPSCall  = millis();
+  printToSerialAndLog("Calling GPS");
   MS_5803.readSensor();
   VOLTAGE       = (analogRead(VMON) / 310.0) * 4;
   ALTITUDE_LAST = ALTITUDE_BMP;
@@ -333,6 +331,7 @@ static void runCutdown(void){
   if(!ENABLE_CUTDOWN) return;
   if(ALTITUDE_BMP > CUTDOWN_ALT && ALTITUDE_LAST > CUTDOWN_ALT){
     mcp.digitalWrite(CUTDOWN, HIGH);
+    CUTDOWN_STATE = 1;
     smartDelay(30000);
     mcp.digitalWrite(CUTDOWN, LOW);
   }
@@ -347,9 +346,9 @@ static void runCutdown(void){
 static void printHeader(void){
   dataFile = SD.open("data.txt", FILE_WRITE);
   if(dataFile){
-    printToSerialAndLog("Stanford Student Space Initiative Balloons Launch " + MISSION_NUMBER + "\n" + CSV_DATA_HEADER);
     dataFile.println("Stanford Student Space Initiative Balloons Launch " + MISSION_NUMBER + "\n" + CSV_DATA_HEADER);
     dataFile.close();
+    printToSerialAndLog("Stanford Student Space Initiative Balloons Launch " + MISSION_NUMBER + "\n" + CSV_DATA_HEADER);
   }
   else{
     printToSerialAndLog("error opening \"data.txt\"");
@@ -418,6 +417,8 @@ static void printData(void) {
     Serial.print(",");
     Serial.print(TEMP_MS5803);
     Serial.print(",");
+    Serial.print(CUTDOWN_STATE);
+    Serial.print(",");
     Serial.println(messagesSent);
   }
 }
@@ -462,6 +463,8 @@ static void logData(void){
     dataFile.print(PRESS_MS5803);
     dataFile.print(",");
     dataFile.print(TEMP_MS5803);
+    dataFile.print(",");
+    dataFile.print(CUTDOWN_STATE);
     dataFile.print(",");
     dataFile.println(messagesSent);
     dataFile.close();
@@ -591,6 +594,8 @@ void satelliteTransmission(){
     messageToSend += String(LONG, 4);
     messageToSend += ",";
     messageToSend += CURRENT;
+    messageToSend += ",";
+    messageToSend += CUTDOWN_STATE;
     messageToSend += ",";
     messageToSend += messagesSent;
     
