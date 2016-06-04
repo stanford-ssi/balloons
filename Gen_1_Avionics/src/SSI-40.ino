@@ -1,9 +1,9 @@
 /*
    Stanford Student Space Initiative
-   Balloons Avionics Launch 2 | April 2016
+   Balloons Avionics Launch 3 | April 2016
    Davy Ragland   | dragland@stanford.edu
    Kirill Safin   | ksafin@stanford.edu
-   Aria Tedjarati | atedjarati@stanford.edu
+   Aria Tedjarati | satedjarati@stanford.edu
 */
 
 /*********************************************************************
@@ -24,16 +24,26 @@
 #include <Adafruit_MCP23017.h>
 
 /* ****************  EDITABLE CONSTANTS  ****************  */
-String MISSION_NUMBER     = "SSI-40";
-bool ENABLE_CUTDOWN       = false;
-bool CUTDOWN_ALTITUDE     = false;
-bool CUTDOWN_GPS          = false;
+String   MISSION_NUMBER   = "SSI-40";
+String   CSV_DATA_HEADER  = "TIME,MILLIS,LOOP,VOLTAGE,ALT_GPS,ALT_BMP,TEMP_IN,TEMP_EXT,LAT,LONG,SPEED_GPS,PRESS_BMP,CURRENT,PRESS_MS5803,TEMP_MS5803,MESSAGES SENT";
+bool     ENABLE_CUTDOWN   = false;
+bool     CUTDOWN_ALTITUDE = false;
+bool     CUTDOWN_GPS      = false;
+uint16_t DEBUG_ALT        = 1000;
 uint16_t MAX_ALT          = 30000;
-double MAX_LAT            = 0;
-double MIN_LAT            = 0;
-double MAX_LONG           = 0;
-double MIN_LONG           = 0;
+double   MAX_LAT          = 0;
+double   MIN_LAT          = 0;
+double   MAX_LONG         = 0;
+double   MIN_LONG         = 0;
 
+/* ****************  TEENSY PIN OUTS  ****************  */
+uint8_t SD_CD             =   2;
+uint8_t ROCKBLOCK_SLEEP   =   9;
+uint8_t SD_CS             =  10;
+uint8_t VMON              =  14;
+uint8_t IMON              =  15;
+uint8_t BMP280_CS         =  20;
+uint8_t THERMOCPL_CS      =  22;
 
 /* ****************  MULTIPLEXER PIN OUTS  ****************  */
 uint8_t HEARTBEAT         =   0;
@@ -45,17 +55,7 @@ uint8_t GPS_GOOD          =   5;
 uint8_t SD_GOOD           =   6;
 uint8_t BAT_GOOD          =   7;
 uint8_t CUTDOWN           =   9;
-uint8_t HEATER_PIN        =  10;
-
-/* ****************  TEENSY PIN OUTS  ****************  */
-uint8_t SD_CD             =   2;
-uint8_t ROCKBLOCK_SLEEP   =   9;
-uint8_t SD_CS             =  10;
-uint8_t VMON              =  14;
-uint8_t IMON              =  15;
-uint8_t BMP280_CS         =  20;
-uint8_t THERMOCPL_CS      =  22;
-uint8_t CUTTDOWN_PIN      =   9;
+uint8_t HEATER            =  10;
 
 /* ****************  GLOBAL OBJECTS  ****************  */
 #define HWSERIAL Serial1
@@ -64,45 +64,50 @@ TinyGPS gps;
 RTC_DS1307 rtc;
 MS5803 MS_5803 = MS5803();
 File dataFile;
+File logFile;
 Adafruit_BMP280 bme(BMP280_CS);
 Adafruit_MAX31855 thermocouple(THERMOCPL_CS);
 Adafruit_MCP23017 mcp;
 
-
 /* ****************  FUNCTION PROTOTYPES  ****************  */
-static void readData(void);
-static void printHeader(void);
-static void   logData(void);
+bool          ISBDCallback();
+static void   readData(void);
 static void   writeLEDS(void);
-static void   smartDelay(unsigned long ms);
+static void   initSensors(void);
 static void   setPinMode(void);
+static void   runHeaters(void);
+static void   runCutdown(void);
 static String getTime(void);
+static void   printHeader(void);
+static void   printToSerialAndLog(String text);
+static void   printData(void);
+static void   logData(void);
+static void   updateTiming(void);
+static void   smartDelay(unsigned long ms);
 static String printDigits(int digits);
-static void initSensors(void);
-static void printData(void);
-void satelliteTransmission();
-void set_flight_mode();
-bool ISBDCallback();
+void          satelliteTransmission();
+void          set_GPS_flight_mode();
+void          sendUBX(uint8_t *MSG, uint8_t len);
+boolean       getUBX_ACK(uint8_t *MSG);
 
 /*********************************************************************
                              DATA
  *********************************************************************/
-float commBeaconInterval   = 2.0; 
-float COMM_BEACON_INTERVAL = 2.0;  
-double minutes             = 0.0;
-float loopStartTime        = 0.0;
-float elapsedSeconds       = 0.0;
-float overflowSeconds      = 0.0;
-float lastGPSCall          = 0.0;
-float lastLEDCall          = 0.0;
-size_t bufferSize          = 0;
-byte gps_set_sucess = 0;
+float  commBeaconInterval   = 2.0; 
+float  COMM_BEACON_INTERVAL = 2.0;  
+double minutes              = 0.0;
+float  loopStartTime        = 0.0;
+float  elapsedSeconds       = 0.0;
+float  overflowSeconds      = 0.0;
+float  lastGPSCall          = 0.0;
+float  lastLEDCall          = 0.0;
+byte   gps_set_sucess       = 0;
+size_t bufferSize           = 0;
 uint8_t setNav[] = {
   0xB5, 0x62, 0x06, 0x24, 0x24, 0x00, 0xFF, 0xFF, 0x06, 0x03, 0x00, 0x00, 0x00, 0x00, 0x10, 0x27, 0x00, 0x00,
   0x05, 0x00, 0xFA, 0x00, 0xFA, 0x00, 0x64, 0x00, 0x2C, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x16, 0xDC
 };
-
 double  VOLTAGE      = 0;
 double  ALTITUDE_GPS = 0;
 double  ALTITUDE_BMP = 0;
@@ -110,14 +115,14 @@ double  TEMP_IN      = 0;
 double  TEMP_EXT     = 0;
 float   LAT          = 0;
 float   LONG         = 0;
-int messagesSent     = 0;
+int     messagesSent = 0;
 double  SPEED_GPS    = 0;
 double  PRESS_BMP    = 0;   
 double  CURRENT      = 0;
 double  PRESS_MS5803 = 0;
 double  TEMP_MS5803  = 0;
 String  TIMER        = "";
-bool  BLINK        = 0;
+bool    BLINK        = 0;
 
 /*********************************************************************
                              BOOT
@@ -126,21 +131,14 @@ void setup() {
   Serial.begin(9600);
   Serial1.begin(9600);
   delay(500);
-
-  // Initiate SD Card Logger
-  if(!SD.begin(SD_CS)) {
+  if(!SD.begin(SD_CS)){
     Serial.println("Could not find a valid SD Card, check wiring!");
     return;
   }
-
   printHeader();
   initSensors();
   setPinMode();
-
-  // Set GPS to Flight Mode
-  set_flight_mode();
-
-  // Init RockBlock
+  set_GPS_flight_mode();
   isbd.attachConsole(Serial);
   isbd.attachDiags(Serial);
   isbd.setPowerProfile(1);      
@@ -157,13 +155,34 @@ void loop() {
   readData();
   writeLEDS();
   logData();
-  //printData();
+  printData();
+  runHeaters();
+  runCutdown();
   satelliteTransmission();
   updateTiming();
 }
 /**********************************************************************
                            FUNCTIONS
  *********************************************************************/
+ /*
+   function: ISBDCallback
+   usage: ISBDCallback();
+   ---------------------------------
+   This function loops back into the main 
+   call while waiting for Rock Block responces.
+*/
+bool ISBDCallback(){
+  loopStartTime = millis();
+  readData();
+  writeLEDS();
+  logData();
+  printData();
+  runHeaters();
+  runCutdown();
+  updateTiming();
+  return true;
+}
+
 /*
    function: readData
    usage: readData();
@@ -172,15 +191,16 @@ void loop() {
 */
 static void readData(void){
   unsigned long age;
-
-  // Poll GPS once/minute
-  if(millis() - lastGPSCall > 60000) {
+  // Poll once/minute
+  if(millis() - lastGPSCall > 60000){
+    smartDelay(30);
     gps.f_get_position(&LAT, &LONG, &age);
     ALTITUDE_GPS = gps.f_altitude();
     SPEED_GPS    = gps.f_speed_kmph();
-    lastGPSCall = millis();
-    Serial.println("Calling GPS");
+    lastGPSCall  = millis();
+    printToSerialAndLog("Calling GPS");
   }
+  // Poll every loop
   MS_5803.readSensor();
   VOLTAGE      = (analogRead(VMON) / 310.0) * 4;
   ALTITUDE_BMP = bme.readAltitude(1013.25);
@@ -196,45 +216,134 @@ static void readData(void){
   BLINK = !BLINK;
 }
 
-
 /*
-   function: updateTiming
-   usage: updateTiming();
+   function: writeLEDS
+   usage: writeLEDS(void);
    ---------------------------------
-   This function updates the data global values.
+   This function visualy error checks the system.
 */
-static void updateTiming(void) {
-  elapsedSeconds = (float)(((float)millis() - loopStartTime) / 1000.0);
-  overflowSeconds = (float)(((float)millis() - loopStartTime) / 1000.0) - elapsedSeconds;
-  minutes += (float)(((float)millis() - loopStartTime) / 1000.0 / 60.0);
+static void writeLEDS(void){
+  if(ALTITUDE_BMP < DEBUG_ALT){
+    mcp.digitalWrite(HEARTBEAT, LOW);
+    mcp.digitalWrite(I_GOOD,    LOW);
+    mcp.digitalWrite(T_GOOD,    LOW);
+    mcp.digitalWrite(P_GOOD,    LOW);
+    mcp.digitalWrite(RB_GOOD,   LOW);
+    mcp.digitalWrite(GPS_GOOD,  LOW);
+    mcp.digitalWrite(SD_GOOD,   LOW);
+    mcp.digitalWrite(BAT_GOOD,  LOW);
+    if(BLINK){
+      mcp.digitalWrite(HEARTBEAT, HIGH);
+    }
+    if(CURRENT <= 0.5){
+      mcp.digitalWrite(I_GOOD, HIGH);
+    }
+    if(TEMP_IN > 15 && TEMP_IN < 50){
+      mcp.digitalWrite(T_GOOD, HIGH);
+    }
+    if(ALTITUDE_BMP > -20 && ALTITUDE_BMP < 200){
+      mcp.digitalWrite(P_GOOD, HIGH);
+    }
+    if(1){
+      mcp.digitalWrite(RB_GOOD, HIGH);
+    }
+    if(LAT != 1000.0 && LONG != 1000.0){
+      mcp.digitalWrite(GPS_GOOD, HIGH);
+    }
+    if(digitalRead(SD_CD) == 0){
+      mcp.digitalWrite(SD_GOOD, HIGH);
+    }
+    if(VOLTAGE >= 3.63){
+      mcp.digitalWrite(BAT_GOOD, HIGH);
+    } 
+    lastLEDCall = millis();
+  }
 }
-
+/*********************************************************************
+                           HELPERS
+ *********************************************************************/
 /*
    function: initSensors
    usage: initSensors();
    ---------------------------------
-   This function initializes the BMP280, MS5803-1BA, and DS1307 RTC
+   This function initializes the BMP280, MS5803-1BA, DS1307 RTC, and MCP23017.
 */
-static void initSensors(void) {
-  // Init BMP 280 
+static void initSensors(void){
   if(!bme.begin()) {
-    Serial.println("Could not find a valid BMP280 sensor, check wiring!");
+     printToSerialAndLog("Could not find a valid BMP280 sensor, check wiring!");
   } 
-
-  // Init MS803
   if(!MS_5803.initalizeSensor()){
-    Serial.println("Could not find a valid MS5803 sensor, check wiring!");  
+    printToSerialAndLog("Could not find a valid MS5803 sensor, check wiring!");
   } 
-
-  // Init RTC
-  if(!rtc.begin()) {
-    Serial.println("Could not find a valid RTC, check wiring!");
+  if(!rtc.begin()){
+    printToSerialAndLog("Could not find a valid RTC, check wiring!");
   }  
-
-  // Init Multiplexer
   mcp.begin();
 }
 
+/*
+   function: setPinMode
+   usage: setPinMode(void);
+   ---------------------------------
+   This function initializes the pinmodes. 
+*/
+static void setPinMode(void){
+  mcp.pinMode(BLINK,    OUTPUT);
+  mcp.pinMode(I_GOOD,   OUTPUT);
+  mcp.pinMode(T_GOOD,   OUTPUT);
+  mcp.pinMode(P_GOOD,   OUTPUT);
+  mcp.pinMode(RB_GOOD,  OUTPUT);
+  mcp.pinMode(GPS_GOOD, OUTPUT);
+  mcp.pinMode(SD_GOOD,  OUTPUT);
+  mcp.pinMode(BAT_GOOD, OUTPUT);
+  mcp.pinMode(HEATER,   OUTPUT);
+  mcp.pinMode(CUTDOWN,  OUTPUT);
+  mcp.digitalWrite(CUTDOWN, LOW);
+  pinMode(SD_CD, OUTPUT);
+  pinMode(VMON,  INPUT);
+  pinMode(IMON,  INPUT);
+}
+
+/*
+   function: runHeaters
+   usage: runHeaters(void);
+   ---------------------------------
+   This function powers the heaters. 
+*/
+static void runHeaters(void){
+  mcp.digitalWrite(HEATER, HIGH);
+}
+
+/*
+   function: runCutdown
+   usage: runCutdown(void);
+   ---------------------------------
+   This function cuts down at a set altitude. 
+*/
+static void runCutdown(void){
+  mcp.digitalWrite(CUTDOWN, HIGH);
+}
+
+/*
+   function: getTime
+   usage: getTime(void);
+   ---------------------------------
+   This function formats the time string. 
+*/
+static String getTime(void){
+  String timer = "";
+  DateTime now = rtc.now();
+  timer+= now.hour();
+  timer+= printDigits(now.minute());
+  timer+= printDigits(now.second());
+  timer+= '/';
+  timer+= now.year();
+  timer+= '/';
+  timer+= now.month();
+  timer+= '/';
+  timer+= now.day();
+  return timer;
+}
 
 /*
    function: printHeader
@@ -245,21 +354,86 @@ static void initSensors(void) {
 static void printHeader(void){
   dataFile = SD.open("data.txt", FILE_WRITE);
   if(dataFile){
-    dataFile.println("Stanford Student Space Initiative Balloons Launch " + MISSION_NUMBER + "\nTIME,MILLIS,LOOP,VOLTAGE,ALT_GPS,ALT_BMP,TEMP_IN,TEMP_EXT,LAT,LONG,SPEED_GPS,PRESS_BMP,CURRENT,PRESS_MS5803,TEMP_MS5803,MESSAGES SENT");
+    printToSerialAndLog("Stanford Student Space Initiative Balloons Launch " + MISSION_NUMBER + "\n" + CSV_DATA_HEADER);
+    dataFile.println("Stanford Student Space Initiative Balloons Launch " + MISSION_NUMBER + "\n" + CSV_DATA_HEADER);
     dataFile.close();
   }
-  else {Serial.println("error opening \"data.txt\"");}  
+  else{
+    printToSerialAndLog("error opening \"data.txt\"");
+  }  
 }
-/*********************************************************************
-                           HELPERS
- *********************************************************************/
+
+/*
+   function: printToSerialAndLog
+   usage: printToSerialAndLog(String text);
+   ---------------------------------
+   This function logs logs onto Serial and the 3D card.
+*/
+static void printToSerialAndLog(String text){
+  logFile = SD.open("log.txt", FILE_WRITE);
+  if(logFile){
+    logFile.print(TIMER);
+    logFile.print(",");
+    logFile.println(text);
+    logFile.close();
+  }
+  else {
+    Serial.println("error opening \"log.txt\"");
+  }
+  if(ALTITUDE_BMP < DEBUG_ALT){
+    Serial.println(text);
+  }
+}
+
+/*
+   function: printData
+   usage: printData();
+   ---------------------------------
+   This function logs data to the 3D card.
+*/
+static void printData(void) {
+  if(ALTITUDE_BMP < DEBUG_ALT){
+    Serial.print(TIMER);
+    Serial.print(",");
+    Serial.print(millis());
+    Serial.print(",");
+    Serial.print(elapsedSeconds*1000);
+    Serial.print(",");
+    Serial.print(VOLTAGE);
+    Serial.print(",");
+    Serial.print(ALTITUDE_GPS);
+    Serial.print(",");
+    Serial.print(ALTITUDE_BMP);
+    Serial.print(",");
+    Serial.print(TEMP_IN);
+    Serial.print(",");
+    Serial.print(TEMP_EXT);
+    Serial.print(",");
+    Serial.print(String(LAT, 4));
+    Serial.print(",");
+    Serial.print(String(LONG, 4));
+    Serial.print(",");
+    Serial.print(SPEED_GPS);
+    Serial.print(",");
+    Serial.print(PRESS_BMP); 
+    Serial.print(",");
+    Serial.print(CURRENT);
+    Serial.print(",");
+    Serial.print(PRESS_MS5803);
+    Serial.print(",");
+    Serial.print(TEMP_MS5803);
+    Serial.print(",");
+    Serial.println(messagesSent);
+  }
+}
+
 /*
    function: logData
    usage: logData();
    ---------------------------------
    This function logs data to the 3D card.
 */
-static void logData(void) {
+static void logData(void){
   dataFile = SD.open("data.txt", FILE_WRITE);
   if(dataFile){
     dataFile.print(TIMER);
@@ -295,75 +469,21 @@ static void logData(void) {
     dataFile.println(messagesSent);
     dataFile.close();
   }
-  else {Serial.println("error opening \"data.txt\"");}
-}
-
-/*
-   function: printData
-   usage: printData();
-   ---------------------------------
-   This function logs data to the 3D card.
-*/
-static void printData(void) {
-    Serial.print(TIMER);
-    Serial.print(",");
-    Serial.print(millis());
-    Serial.print(",");
-    Serial.print(elapsedSeconds*1000);
-    Serial.print(",");
-    Serial.print(VOLTAGE);
-    Serial.print(",");
-    Serial.print(ALTITUDE_GPS);
-    Serial.print(",");
-    Serial.print(ALTITUDE_BMP);
-    Serial.print(",");
-    Serial.print(TEMP_IN);
-    Serial.print(",");
-    Serial.print(TEMP_EXT);
-    Serial.print(",");
-    Serial.print(String(LAT, 4));
-    Serial.print(",");
-    Serial.print(String(LONG, 4));
-    Serial.print(",");
-    Serial.print(SPEED_GPS);
-    Serial.print(",");
-    Serial.print(PRESS_BMP); 
-    Serial.print(",");
-    Serial.print(CURRENT);
-    Serial.print(",");
-    Serial.print(PRESS_MS5803);
-    Serial.print(",");
-    Serial.print(TEMP_MS5803);
-    Serial.print(",");
-    Serial.println(messagesSent);
-}
-
-/*
-   function: writeLEDS
-   usage: writeLEDS(void);
-   ---------------------------------
-   This function visualy error checks the system.
-*/
-static void writeLEDS(void){
-  if((millis() - lastLEDCall > 1000) && (ALTITUDE_BMP < 1000)) {
-    mcp.digitalWrite(HEARTBEAT,    LOW);
-    mcp.digitalWrite(I_GOOD,   LOW);
-    mcp.digitalWrite(T_GOOD,   LOW);
-    mcp.digitalWrite(P_GOOD,   LOW);
-    mcp.digitalWrite(RB_GOOD,  LOW);
-    mcp.digitalWrite(GPS_GOOD, LOW);
-    mcp.digitalWrite(SD_GOOD,  LOW);
-    mcp.digitalWrite(BAT_GOOD, LOW);
-    if(BLINK){mcp.digitalWrite(HEARTBEAT, HIGH);}
-    if(CURRENT <= 0.5){mcp.digitalWrite(I_GOOD, HIGH);}
-    if(TEMP_IN > 15 && TEMP_IN < 50){mcp.digitalWrite(T_GOOD, HIGH);}
-    if(ALTITUDE_BMP > -20 && ALTITUDE_BMP < 200){mcp.digitalWrite(P_GOOD, HIGH);}
-    if(1){mcp.digitalWrite(RB_GOOD, HIGH);}
-    if(LAT != 1000.0 && LONG != 1000.0){mcp.digitalWrite(GPS_GOOD, HIGH);}
-    if(digitalRead(SD_CD) == 0){mcp.digitalWrite(SD_GOOD, HIGH);}
-    if(VOLTAGE >= 3.63){mcp.digitalWrite(BAT_GOOD,HIGH);} 
-    lastLEDCall = millis();
+  else {
+    printToSerialAndLog("error opening \"data.txt\"");
   }
+}
+
+/*
+   function: updateTiming
+   usage: updateTiming();
+   ---------------------------------
+   This function updates the data global values.
+*/
+static void updateTiming(void){
+  elapsedSeconds  =  (float)(((float)millis() - loopStartTime) / 1000.0);
+  overflowSeconds =  (float)(((float)millis() - loopStartTime) / 1000.0) - elapsedSeconds;
+  minutes         += (float)(((float)millis() - loopStartTime) / 1000.0 / 60.0);
 }
 
 /*
@@ -373,68 +493,27 @@ static void writeLEDS(void){
    ---------------------------------
    This function sleeps while also reading GPS data.
 */
-static void smartDelay(unsigned long ms) {
+static void smartDelay(unsigned long ms){
   unsigned long start = millis();
   do{
-    while (Serial1.available()){gps.encode(Serial1.read());}
+    while(Serial1.available()){
+      gps.encode(Serial1.read());
+    }
   }while (millis() - start < ms);
-}
-
-/*
-   function: setPinMode
-   usage: setPinMode(void);
-   ---------------------------------
-   This function initializes the pinmodes. 
-*/
-static void setPinMode(void){
-  mcp.pinMode(BLINK,    OUTPUT);
-  mcp.pinMode(I_GOOD,   OUTPUT);
-  mcp.pinMode(T_GOOD,   OUTPUT);
-  mcp.pinMode(P_GOOD,   OUTPUT);
-  mcp.pinMode(RB_GOOD,  OUTPUT);
-  mcp.pinMode(GPS_GOOD, OUTPUT);
-  mcp.pinMode(SD_GOOD,  OUTPUT);
-  mcp.pinMode(BAT_GOOD, OUTPUT);
-  for(int i = 8; i < 13; i++){
-    mcp.pinMode(i, OUTPUT);
-    mcp.digitalWrite(i, LOW);
-  }
-  pinMode(SD_CD,   OUTPUT);
-  pinMode(VMON,      INPUT);
-  pinMode(IMON,      INPUT);
-}
-/*
-   function: getTime
-   usage: getTime(void);
-   ---------------------------------
-   This function formats the time string. 
-*/
-static String getTime(void){
-  String timer = "";
-  DateTime now = rtc.now();
-  timer+= now.hour();
-  timer+= printDigits(now.minute());
-  timer+= printDigits(now.second());
-  timer+= '/';
-  timer+= now.year();
-  timer+= '/';
-  timer+= now.month();
-  timer+= '/';
-  timer+= now.day();
-  return timer;
 }
 
 /*
    function: printDigits
    usage: printDigits(int digits);
    ---------------------------------
-   This function formats digits for the time 
+   This function formats digits for the time.
 */
 static String printDigits(int digits){
   String timer = "";
   timer += ":";
-  if(digits < 10)
+  if(digits < 10){
     timer += '0';
+  }
   timer += digits;
   return timer;
 }
@@ -447,12 +526,12 @@ static String printDigits(int digits){
 */
 void satelliteTransmission(){
   if((minutes < commBeaconInterval)){
-    Serial.println("Beginning to talk to the RockBLOCK...");
+    printToSerialAndLog("Beginning to talk to the RockBLOCK...");
     messagesSent += 1;
-    Serial.print("Transmitting message: ");
-    Serial.println((String)messagesSent);
-    Serial.println("Beginning to talk to the RockBLOCK...");
-    Serial.println("Sending RB message");
+    printToSerialAndLog("Transmitting message: ");
+    printToSerialAndLog((String)messagesSent);
+    printToSerialAndLog("Beginning to talk to the RockBLOCK...");
+    printToSerialAndLog("Sending RB message");
     char outBuffer[200];
     
     String messageToSend = ""; 
@@ -476,46 +555,36 @@ void satelliteTransmission(){
     messageToSend += ",";
     messageToSend += messagesSent;
     
-    for(uint8_t i = 0; i < messageToSend.length(); i++) {outBuffer[i] = messageToSend[i];}
+    for(uint8_t i = 0; i < messageToSend.length(); i++) {
+      outBuffer[i] = messageToSend[i];
+    }
     uint8_t rxBuffer[200] = {0};
-    for(int i = 0; i < messageToSend.length(); i++){rxBuffer[i] = outBuffer[i];}
+    for(int i = 0; i < messageToSend.length(); i++){
+      rxBuffer[i] = outBuffer[i];
+    }
     bufferSize = sizeof(rxBuffer);
     isbd.sendReceiveSBDBinary(rxBuffer, messageToSend.length(), rxBuffer, bufferSize);
     int number = bufferSize;
-    Serial.println("Going to sleep mode");
+    printToSerialAndLog("Going to sleep mode");
     delay(2000);
     commBeaconInterval = minutes + COMM_BEACON_INTERVAL;
   }
 }
 
 /*
-   function: ISBDCallback
-   usage: ISBDCallback();
+   function: set_GPS_flight_mode
+   usage: set_GPS_flight_mode();
    ---------------------------------
-   This function loops back into the main 
-   call while waiting for responces.
+   This function sets the GPS so that it won't lock out
+   at higher altitude. 
 */
-bool ISBDCallback(){
-  loopStartTime = millis();
-  readData();
-  writeLEDS();
-  logData();
-  //printData();
-  updateTiming();
-  return true;
-}
-
-/*
-   function: set_flight_mode
-   usage: set_flight_mode();
-   ---------------------------------
-   This function sets the GPS so that it won't lock out. 
-*/
-void set_flight_mode() {
-  for (int i = 0; i < 6; i++) {
+void set_GPS_flight_mode(){
+  for (int i = 0; i < 6; i++){
     sendUBX(setNav, sizeof(setNav) / sizeof(uint8_t));
     gps_set_sucess = getUBX_ACK(setNav);
-    if (gps_set_sucess) break;
+    if(gps_set_sucess){
+      break;
+    }
   }
   gps_set_sucess = 0;
 }
@@ -526,11 +595,11 @@ void set_flight_mode() {
    param: MSG = message
    param: len = length
    ---------------------------------
-   This function sets the GPS so that it won't lock out. 
+   This function sends end a byte array of UBX protocol to the GPS
+   so that it doesn't lock it out at altitude.
 */
-// Send a byte array of UBX protocol to the GPS
-void sendUBX(uint8_t *MSG, uint8_t len) {
-  for (int i = 0; i < len; i++) {
+void sendUBX(uint8_t *MSG, uint8_t len){
+  for(int i = 0; i < len; i++){
     HWSERIAL.write(MSG[i]);
   }
   HWSERIAL.println();
@@ -541,10 +610,10 @@ void sendUBX(uint8_t *MSG, uint8_t len) {
    usage: getUBX_ACK(uint8_t *MSG);
    param: MSG = message
    ---------------------------------
-   This function communicates with the ROCKBLOCK
+   This function calculates the expected UBX ACK 
+   packet and parse UBX response from GPS.
 */
-// Calculate expected UBX ACK packet and parse UBX response from GPS
-boolean getUBX_ACK(uint8_t *MSG) {
+boolean getUBX_ACK(uint8_t *MSG){
   uint8_t b;
   uint8_t ackByteID = 0;
   uint8_t ackPacket[10];
@@ -563,27 +632,26 @@ boolean getUBX_ACK(uint8_t *MSG) {
     ackPacket[8] = ackPacket[8] + ackPacket[i];
     ackPacket[9] = ackPacket[9] + ackPacket[8];
   }
-  while (1) {
-    // Test for success
-    if (ackByteID > 9) {
+  while(1){
+    if(ackByteID > 9){
       // All packets in order!
-      Serial.println("(SUCCESS!)");
+      printToSerialAndLog("(SUCCESS!)");
       return true;
     }
     // Timeout if no valid response in 3 seconds
     if (millis() - startTime > 3000) {
-      Serial.println("(FAILED!)");
+      printToSerialAndLog("(FAILED!)");
       return false;
     }
     // Make sure data is available to read
-    if (HWSERIAL.available()) {
+    if(HWSERIAL.available()){
       b = HWSERIAL.read();
       // Check that bytes arrive in sequence as per expected ACK packet
       if (b == ackPacket[ackByteID]) {
         ackByteID++;
         //Serial.print(b, HEX);
       }
-      else {
+      else{
         ackByteID = 0;  // Reset and look again, invalid order
       }
     }
