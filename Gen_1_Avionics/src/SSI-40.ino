@@ -24,8 +24,9 @@
 
 /* ****************  EDITABLE CONSTANTS  ****************  */
 String   MISSION_NUMBER   = "SSI-40";
-String   CSV_DATA_HEADER  = "TIME,MILLIS,LOOP,VOLTAGE,ALT_GPS,ALT_BMP,TEMP_IN,TEMP_EXT,LAT,LONG,SPEED_GPS,PRESS_BMP,CURRENT,PRESS_MS5803,TEMP_MS5803,MESSAGES SENT";
+String   CSV_DATA_HEADER  = "TIME,MILLIS,LOOP,VOLTAGE,ALT_GPS,ALT_BMP,ASCENT_RATE,TEMP_IN,TEMP_EXT,LAT,LONG,SPEED_GPS,PRESS_BMP,CURRENT,PRESS_MS5803,TEMP_MS5803,MESSAGES SENT";
 bool     ENABLE_CUTDOWN   = true;
+const int AscentRateSize   = 200;
 uint16_t CUTDOWN_ALT      = 30000;
 uint16_t DEBUG_ALT        = 1000;
 uint16_t HEATER_SETPOINT  = 0;
@@ -79,6 +80,7 @@ static void   updateTiming(void);
 static void   smartDelay(unsigned long ms);
 static String getTime(void);
 static String printDigits(int digits);
+static float  calcAscentRate(void);
 void          satelliteTransmission();
 void          set_GPS_flight_mode();
 void          sendUBX(uint8_t *MSG, uint8_t len);
@@ -95,29 +97,34 @@ float  elapsedSeconds       = 0.0;
 float  overflowSeconds      = 0.0;
 float  lastGPSCall          = 0.0;
 float  lastLEDCall          = 0.0;
+float  lastALTCall          = 0.0;
+float  currALTCall          = 0.0;
+double ALTITUDE_LAST        = 0;
 byte   gps_set_sucess       = 0;
 byte   RB_set_sucess        = 0;
 size_t bufferSize           = 0;
+float  AscentRateBuffer[AscentRateSize];
 uint8_t setNav[] = {
   0xB5, 0x62, 0x06, 0x24, 0x24, 0x00, 0xFF, 0xFF, 0x06, 0x03, 0x00, 0x00, 0x00, 0x00, 0x10, 0x27, 0x00, 0x00,
   0x05, 0x00, 0xFA, 0x00, 0xFA, 0x00, 0x64, 0x00, 0x2C, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x16, 0xDC
 };
-double  VOLTAGE      = 0;
-double  ALTITUDE_GPS = 0;
-double  ALTITUDE_BMP = 0;
-double  TEMP_IN      = 0;
-double  TEMP_EXT     = 0;
-float   LAT          = 0;
-float   LONG         = 0;
-int     messagesSent = 0;
-double  SPEED_GPS    = 0;
-double  PRESS_BMP    = 0;   
-double  CURRENT      = 0;
-double  PRESS_MS5803 = 0;
-double  TEMP_MS5803  = 0;
-String  TIMER        = "";
-bool    BLINK        = 0;
+double  VOLTAGE       = 0;
+double  ALTITUDE_GPS  = 0;
+double  ALTITUDE_BMP  = 0;
+double  ASCENT_RATE   = 0;
+double  TEMP_IN       = 0;
+double  TEMP_EXT      = 0;
+float   LAT           = 0;
+float   LONG          = 0;
+int     messagesSent  = 0;
+double  SPEED_GPS     = 0;
+double  PRESS_BMP     = 0;   
+double  CURRENT       = 0;
+double  PRESS_MS5803  = 0;
+double  TEMP_MS5803   = 0;
+String  TIMER         = "";
+bool    BLINK         = 0;
 
 /*********************************************************************
                              BOOT
@@ -197,14 +204,16 @@ static void readData(void){
   }
   // Poll every loop
   MS_5803.readSensor();
-  VOLTAGE      = (analogRead(VMON) / 310.0) * 4;
-  ALTITUDE_BMP = bme.readAltitude(1013.25);
-  TEMP_IN      = bme.readTemperature();
-  PRESS_BMP    = bme.readPressure();   
-  CURRENT      = (analogRead(IMON) / 310.0) * 0.2;
-  PRESS_MS5803 = MS_5803.pressure() * 10;
-  TEMP_MS5803  = MS_5803.temperature();
-  TIMER        = getTime();
+  VOLTAGE       = (analogRead(VMON) / 310.0) * 4;
+  ALTITUDE_LAST = ALTITUDE_BMP;
+  ALTITUDE_BMP  = bme.readAltitude(1013.25);
+  ASCENT_RATE   = calcAscentRate();
+  TEMP_IN       = bme.readTemperature();
+  PRESS_BMP     = bme.readPressure();   
+  CURRENT       = (analogRead(IMON) / 310.0) * 0.2;
+  PRESS_MS5803  = MS_5803.pressure() * 10;
+  TEMP_MS5803   = MS_5803.temperature();
+  TIMER         = getTime();
   if(!isnan(thermocouple.readCelsius())) {
     TEMP_EXT =  thermocouple.readCelsius();
   }
@@ -322,7 +331,7 @@ static void runHeaters(void){
 */
 static void runCutdown(void){
   if(!ENABLE_CUTDOWN) return;
-  if(ALTITUDE_BMP > CUTDOWN_ALT){
+  if(ALTITUDE_BMP > CUTDOWN_ALT && ALTITUDE_LAST > CUTDOWN_ALT){
     mcp.digitalWrite(CUTDOWN, HIGH);
     smartDelay(30000);
     mcp.digitalWrite(CUTDOWN, LOW);
@@ -389,6 +398,8 @@ static void printData(void) {
     Serial.print(",");
     Serial.print(ALTITUDE_BMP);
     Serial.print(",");
+    Serial.print(ASCENT_RATE);
+    Serial.print(",");
     Serial.print(TEMP_IN);
     Serial.print(",");
     Serial.print(TEMP_EXT);
@@ -431,6 +442,8 @@ static void logData(void){
     dataFile.print(ALTITUDE_GPS);
     dataFile.print(",");
     dataFile.print(ALTITUDE_BMP);
+    dataFile.print(",");
+    dataFile.print(ASCENT_RATE);
     dataFile.print(",");
     dataFile.print(TEMP_IN);
     dataFile.print(",");
@@ -524,6 +537,28 @@ static String printDigits(int digits){
 }
 
 /*
+   function: calcAscentRate(void)
+   usage: calcAscentRate();
+   return: ascent rate from last two data points
+   ---------------------------------
+   This function calculates the linearized ascent rate from 
+   the last two altitude readings.
+*/
+static float calcAscentRate(void){
+  for(int i = 0; i < AscentRateSize - 1; i++){
+    AscentRateBuffer[i] = AscentRateBuffer[i + 1];
+  }
+  lastALTCall = currALTCall;
+  currALTCall = millis();
+  AscentRateBuffer[AscentRateSize -1] = (ALTITUDE_BMP - ALTITUDE_LAST) / ((currALTCall - lastALTCall) / 1000.0);
+  float AscentRateTotal = 0;
+  for(int i = 0; i < AscentRateSize; i++){
+    AscentRateTotal += AscentRateBuffer[i];
+  }
+  return AscentRateTotal / AscentRateSize;
+}
+
+/*
    function: satelliteTransmission
    usage: satelliteTransmission();
    ---------------------------------
@@ -538,13 +573,14 @@ void satelliteTransmission(){
     printToSerialAndLog("Beginning to talk to the RockBLOCK...");
     printToSerialAndLog("Sending RB message");
     char outBuffer[200];
-    
     String messageToSend = ""; 
     messageToSend += VOLTAGE;
     messageToSend += ",";
     messageToSend += ALTITUDE_GPS;
     messageToSend += ",";
     messageToSend += ALTITUDE_BMP;
+    messageToSend += ",";
+    messageToSend += ASCENT_RATE;
     messageToSend += ",";
     messageToSend += TEMP_IN;
     messageToSend += ",";
@@ -553,8 +589,6 @@ void satelliteTransmission(){
     messageToSend += String(LAT, 4);
     messageToSend += ",";
     messageToSend += String(LONG, 4);
-    messageToSend += ",";
-    messageToSend += SPEED_GPS;
     messageToSend += ",";
     messageToSend += CURRENT;
     messageToSend += ",";
@@ -614,6 +648,7 @@ void sendUBX(uint8_t *MSG, uint8_t len){
    function: getUBX_ACK
    usage: getUBX_ACK(uint8_t *MSG);
    param: MSG = message
+   return: success = checks message
    ---------------------------------
    This function calculates the expected UBX ACK 
    packet and parse UBX response from GPS.
