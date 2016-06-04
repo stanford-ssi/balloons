@@ -25,15 +25,10 @@
 /* ****************  EDITABLE CONSTANTS  ****************  */
 String   MISSION_NUMBER   = "SSI-40";
 String   CSV_DATA_HEADER  = "TIME,MILLIS,LOOP,VOLTAGE,ALT_GPS,ALT_BMP,TEMP_IN,TEMP_EXT,LAT,LONG,SPEED_GPS,PRESS_BMP,CURRENT,PRESS_MS5803,TEMP_MS5803,MESSAGES SENT";
-bool     ENABLE_CUTDOWN   = false;
-bool     CUTDOWN_GPS      = false;
+bool     ENABLE_CUTDOWN   = true;
 uint16_t CUTDOWN_ALT      = 30000;
 uint16_t DEBUG_ALT        = 1000;
-uint16_t MAX_ALT          = 30000;
-double   MAX_LAT          = 0;
-double   MIN_LAT          = 0;
-double   MAX_LONG         = 0;
-double   MIN_LONG         = 0;
+uint16_t HEATER_SETPOINT  = 0;
 
 /* ****************  TEENSY PIN OUTS  ****************  */
 uint8_t SD_CD             =   2;
@@ -76,13 +71,13 @@ static void   initSensors(void);
 static void   setPinMode(void);
 static void   runHeaters(void);
 static void   runCutdown(void);
-static String getTime(void);
 static void   printHeader(void);
 static void   printToSerialAndLog(String text);
 static void   printData(void);
 static void   logData(void);
 static void   updateTiming(void);
 static void   smartDelay(unsigned long ms);
+static String getTime(void);
 static String printDigits(int digits);
 void          satelliteTransmission();
 void          set_GPS_flight_mode();
@@ -101,7 +96,7 @@ float  overflowSeconds      = 0.0;
 float  lastGPSCall          = 0.0;
 float  lastLEDCall          = 0.0;
 byte   gps_set_sucess       = 0;
-byte   RB_set_sucess       = 0;
+byte   RB_set_sucess        = 0;
 size_t bufferSize           = 0;
 uint8_t setNav[] = {
   0xB5, 0x62, 0x06, 0x24, 0x24, 0x00, 0xFF, 0xFF, 0x06, 0x03, 0x00, 0x00, 0x00, 0x00, 0x10, 0x27, 0x00, 0x00,
@@ -133,7 +128,6 @@ void setup() {
   delay(500);
   if(!SD.begin(SD_CS)){
     Serial.println("Could not find a valid SD Card, check wiring!");
-    return;
   }
   printHeader();
   initSensors();
@@ -312,7 +306,12 @@ static void setPinMode(void){
    This function powers the heaters. 
 */
 static void runHeaters(void){
-  mcp.digitalWrite(HEATER, HIGH);
+  if(TEMP_IN <= HEATER_SETPOINT){
+    mcp.digitalWrite(HEATER, HIGH);
+  }
+  else{
+    mcp.digitalWrite(HEATER, LOW);
+  }
 }
 
 /*
@@ -322,6 +321,7 @@ static void runHeaters(void){
    This function cuts down at a set altitude. 
 */
 static void runCutdown(void){
+  if(!ENABLE_CUTDOWN) return;
   if(ALTITUDE_BMP > CUTDOWN_ALT){
     mcp.digitalWrite(CUTDOWN, HIGH);
     smartDelay(30000);
@@ -330,31 +330,10 @@ static void runCutdown(void){
 }
 
 /*
-   function: getTime
-   usage: getTime(void);
-   ---------------------------------
-   This function formats the time string. 
-*/
-static String getTime(void){
-  String timer = "";
-  DateTime now = rtc.now();
-  timer+= now.hour();
-  timer+= printDigits(now.minute());
-  timer+= printDigits(now.second());
-  timer+= '/';
-  timer+= now.year();
-  timer+= '/';
-  timer+= now.month();
-  timer+= '/';
-  timer+= now.day();
-  return timer;
-}
-
-/*
    function: printHeader
    usage: printHeader();
    ---------------------------------
-   This function prints the header for the data file
+   This function prints the header for the data file.
 */
 static void printHeader(void){
   dataFile = SD.open("data.txt", FILE_WRITE);
@@ -505,6 +484,27 @@ static void smartDelay(unsigned long ms){
       gps.encode(Serial1.read());
     }
   }while (millis() - start < ms);
+}
+
+/*
+   function: getTime
+   usage: getTime(void);
+   ---------------------------------
+   This function formats the time string. 
+*/
+static String getTime(void){
+  String timer = "";
+  DateTime now = rtc.now();
+  timer+= now.hour();
+  timer+= printDigits(now.minute());
+  timer+= printDigits(now.second());
+  timer+= '/';
+  timer+= now.year();
+  timer+= '/';
+  timer+= now.month();
+  timer+= '/';
+  timer+= now.day();
+  return timer;
 }
 
 /*
