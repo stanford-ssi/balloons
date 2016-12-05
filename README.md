@@ -1,7 +1,8 @@
 # balloons
 
-Code from SSI High Altitude Balloons.
+Code from SSI High Altitude Balloons Team.
 
 Current projects:
 
-* Generalized balloon avionics package
+* HABEES
+* HABITAT
