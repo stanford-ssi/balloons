@@ -16,12 +16,15 @@
 *********************************************************************/
 
 #include "Arduino.h"
+#include "Avionics.h"
+
+Avionics flightController;
 
 void setup() {
-  Serial.begin(9600);
+  flightController.init();
 }
 
 void loop() {
-  Serial.println("Hello World!");
+  flightController.run();
   delay(1000);
 }
