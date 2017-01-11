@@ -3,7 +3,7 @@
   Balloons | HABEES | January 2017
   Davy Ragland | dragland@stanford.edu
 
-  File: config.h
+  File: Config.h
   --------------------------
   Global constants specific to each launch.
 */

@@ -11,6 +11,11 @@
 #include "Avionics.h"
 
 /**********************************  SETUP  ***********************************/
+/*
+ * Function: init
+ * -------------------
+ * This function initializes the avionics flight controller.
+ */
 void Avionics::init() {
   Serial.begin(9600);
   pinMode(FAULT_LED, OUTPUT);
@@ -18,73 +23,150 @@ void Avionics::init() {
 }
 
 /********************************  FUNCTIONS  *********************************/
+/*
+ * Function: updateData
+ * -------------------
+ * This function handles basic flight data collection.
+ */
 void Avionics::updateData() {
   if(readData()    < 0) logFatalError("failed to read Data");
   if(logData()     < 0) logFatalError("failed to log Data");
   if(printData()   < 0) logFatalError("failed to print Data");
 }
 
+/*
+ * Function: evaluateState
+ * -------------------
+ * This function intelligently reacts to the current data frame.
+ */
 void Avionics::evaluateState() {
   if(debug()       < 0) logFatalError("failed to debug state");
   if(runHeaters()  < 0) logFatalError("failed to run heaters");
   if(runCutdown()  < 0) logFatalError("failed to run cutdown");
 }
 
+/*
+ * Function: sendComms
+ * -------------------
+ * This function sends the current data frame down.
+ */
 void Avionics::sendComms() {
   if(sendSATCOMS() < 0) logFatalError("failed to communicate over SATCOMS");
   if(sendAPRS()    < 0) logFatalError("failed to communicate over APRS");
   if(sendCAN()     < 0) logFatalError("failed to communicate over CAN");
 }
 
+/*
+ * Function: sleep
+ * -------------------
+ * This function sleeps at the end of the loop.
+ */
 void Avionics::sleep() {
   delay(LOOP_RATE);
 }
 
 /*********************************  HELPERS  **********************************/
+/*
+ * Function: readData
+ * -------------------
+ * This function updates the current data frame.
+ */
 int8_t Avionics::readData() {
+  DATA.BLINK    = !DATA.BLINK;
   return 0;
 }
 
+/*
+ * Function: debug
+ * -------------------
+ * This function error checks the current data frame.
+ */
 int8_t Avionics::debug() {
   return 0;
 }
 
+/*
+ * Function: logData
+ * -------------------
+ * This function logs the current data frame.
+ */
 int8_t Avionics::logData() {
-  Serial.print("test value");
-  Serial.println();
   return 0;
 }
 
+/*
+ * Function: printData
+ * -------------------
+ * This function prints the current data frame.
+ */
 int8_t Avionics::printData() {
+  if (DATA.ALTITUDE_BMP < DEBUG_ALT) {
+    Serial.println(DATA.BLINK);
+  }
   return 0;
 }
 
+/*
+ * Function: runHeaters
+ * -------------------
+ * This function thermaly regulates the avionics.
+ */
 int8_t Avionics::runHeaters() {
   return 0;
 }
 
+/*
+ * Function: runCutdown
+ * -------------------
+ * This function cutsdown if nessisary.
+ */
 int8_t Avionics::runCutdown() {
   return 0;
 }
 
+/*
+ * Function: sendSATCOMS
+ * -------------------
+ * This function sends the current data frame over the ROCKBLOCK IO.
+ */
 int8_t Avionics::sendSATCOMS() {
   return 0;
 }
 
+/*
+ * Function: sendAPRS
+ * -------------------
+ * This function sends the current data frame over the APRS RF IO.
+ */
 int8_t Avionics::sendAPRS() {
   return 0;
 }
 
+/*
+ * Function: sendCAN
+ * -------------------
+ * This function sends the current data frame over the CAN BUS IO.
+ */
 int8_t Avionics::sendCAN() {
   return 0;
 }
 
+/*
+ * Function: faultLED
+ * -------------------
+ * This function alerts the user if there has been a Fatal error.
+ */
 void Avionics::faultLED() {
   digitalWrite(FAULT_LED, HIGH);
   delay(100);
   digitalWrite(FAULT_LED, LOW);
 }
 
+/*
+ * Function: logFatalError
+ * -------------------
+ * This function logs information if there has been a Fatal error.
+ */
 void Avionics::logFatalError(const char* debug) {
   faultLED();
   Serial.print("FATAL ERROR: ");

@@ -10,18 +10,15 @@
 
 #include "Avionics.h"
 
-/******************************  GLOBAL OBJECTS  ******************************/
-Avionics flightController;
-
 /***********************************  BOOT  ***********************************/
-void setup() {
+int main(void) {
+  Avionics flightController;
   flightController.init();
-}
-
 /***********************************  MAIN  ***********************************/
-void loop() {
-  flightController.updateData();
-  flightController.evaluateState();
-  flightController.sendComms();
-  flightController.sleep();
+  while(true) {
+    flightController.updateData();
+    flightController.evaluateState();
+    flightController.sendComms();
+    flightController.sleep();
+  }
 }
