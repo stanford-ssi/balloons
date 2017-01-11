@@ -2,12 +2,10 @@
   Stanford Student Space Initiative
   Balloons | HABEES | January 2017
   Davy Ragland | dragland@stanford.edu
-*/
 
-/*
   File: main.cpp
   --------------------------
-  Flight code for ELMO avionics.
+  Flight code for main HABEES avionics.
 */
 
 #include "Avionics.h"
@@ -22,6 +20,8 @@ void setup() {
 
 /***********************************  MAIN  ***********************************/
 void loop() {
-  flightController.run();
-  delay(1000);
+  flightController.updateData();
+  flightController.evaluateState();
+  flightController.sendComms();
+  flightController.sleep();
 }
