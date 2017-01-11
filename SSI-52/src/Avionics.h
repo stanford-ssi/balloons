@@ -1,8 +1,19 @@
+/*
+  Stanford Student Space Initiative
+  Balloons | HABEES | January 2017
+  Davy Ragland | dragland@stanford.edu
+*/
+
+/*
+  File: Avionics.h
+  --------------------------
+  Primary avionics code.
+*/
+
 #ifndef AVIONICS_H
 #define AVIONICS_H
 
-#include "Arduino.h"
-#include <stdint.h>
+#include "config.h"
 
 class Avionics {
 public:

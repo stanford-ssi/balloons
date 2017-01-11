@@ -1,3 +1,15 @@
+/*
+  Stanford Student Space Initiative
+  Balloons | HABEES | January 2017
+  Davy Ragland | dragland@stanford.edu
+*/
+
+/*
+  File: Avionics.cpp
+  --------------------------
+  Implimentation of Avionics.h
+*/
+
 #include "Avionics.h"
 
 void Avionics::init() {
@@ -5,5 +17,7 @@ void Avionics::init() {
 }
 
 void Avionics::run() {
-  Serial.println("Hello World!");
+  Serial.print(MISSION_NUMBER);
+  Serial.print(value++);
+  Serial.println("");
 }

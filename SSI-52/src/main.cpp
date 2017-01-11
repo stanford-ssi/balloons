@@ -1,29 +1,26 @@
 /*
   Stanford Student Space Initiative
-  Balloons Launch 52 | HABEES | January 2017
-  Davy Ragland   | dragland@stanford.edu
-  Zach Belateche | zachbela@stanford.edu
-  Alex Mallery   | amallery@stanford.edu
-  Kirill Safin   | ksafin@stanford.edu
-  Aria Tedjarati | satedjarati@stanford.edu
+  Balloons | HABEES | January 2017
+  Davy Ragland | dragland@stanford.edu
 */
 
-/*********************************************************************
+/*
   File: main.cpp
   --------------------------
-  Code for ELMO avionics
-  Executes essential fight controler tasks.
-*********************************************************************/
+  Flight code for ELMO avionics.
+*/
 
-#include "Arduino.h"
 #include "Avionics.h"
 
+/******************************  GLOBAL OBJECTS  ******************************/
 Avionics flightController;
 
+/***********************************  BOOT  ***********************************/
 void setup() {
   flightController.init();
 }
 
+/***********************************  MAIN  ***********************************/
 void loop() {
   flightController.run();
   delay(1000);
