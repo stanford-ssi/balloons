@@ -2,13 +2,14 @@
   Stanford Student Space Initiative
   Balloons | HABEES | January 2017
   Davy Ragland | dragland@stanford.edu
+  Aria Tedjarati | satedjarati@stanford.edu
 
-  File: Sensors.h
+  File: GPS.h
   --------------------------
-  Interface to sensors on avionics hardware.
+  GPS API.
 */
 
-#ifndef Sensors_H
-#define Sensors_H
+#ifndef GPS_H
+#define GPS_H
 
 #endif

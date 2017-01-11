@@ -17,6 +17,7 @@
 struct DataFrame {
   float   AscentRateBuffer[ASCENT_RATE_SIZE];
   double  VOLTAGE             = 0;
+  double ALTITUDE_LAST        = 0;
   double  ALTITUDE_GPS        = 0;
   double  ALTITUDE_BMP        = 0;
   double  ASCENT_RATE         = 0;

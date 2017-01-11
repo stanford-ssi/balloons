@@ -9,6 +9,7 @@
 */
 
 #include "Avionics.h"
+#include <Sensors.h>
 
 /**********************************  SETUP  ***********************************/
 /*
@@ -20,6 +21,7 @@ void Avionics::init() {
   Serial.begin(9600);
   pinMode(FAULT_LED, OUTPUT);
   if(!Serial) faultLED();
+  initSensors();
 }
 
 /********************************  FUNCTIONS  *********************************/
@@ -72,7 +74,12 @@ void Avionics::sleep() {
  * This function updates the current data frame.
  */
 int8_t Avionics::readData() {
-  DATA.BLINK    = !DATA.BLINK;
+  DATA.ALTITUDE_LAST = DATA.ALTITUDE_BMP;
+  DATA.TEMP_EXT      = getTempOut();
+  DATA.TEMP_IN       = getTempIn();
+  DATA.PRESS_BMP     = getPressure();
+  DATA.ALTITUDE_BMP  = getAltitude();
+  DATA.BLINK         = !DATA.BLINK;
   return 0;
 }
 
@@ -101,7 +108,16 @@ int8_t Avionics::logData() {
  */
 int8_t Avionics::printData() {
   if (DATA.ALTITUDE_BMP < DEBUG_ALT) {
-    Serial.println(DATA.BLINK);
+    Serial.print(millis());
+    Serial.print(",");
+    Serial.print(DATA.ALTITUDE_BMP);
+    Serial.print(",");
+    Serial.print(DATA.TEMP_IN);
+    Serial.print(",");
+    Serial.print(DATA.TEMP_EXT);
+    Serial.print(",");
+    Serial.print(DATA.PRESS_BMP);
+    Serial.println();
   }
   return 0;
 }
