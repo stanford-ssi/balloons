@@ -1,6 +1,29 @@
 # SSI HABEES:
 ###A modular flight controler with payload interface for high altitude balloons
 
+#Flight States:
+The avionics uses an Event Driven Programming model in order to clearly transition between states of opperation.
+
+#### States
+1. Pre-Launch  
+ - 1a. Startup  initialization
+ - 1b. System verification
+2. Launch
+ - 2a. Liftoff
+ - 2b. Flight mode
+ - 2c. Apogee
+ - 2d. Descent
+
+#Code architecture:
+The avionics flight software opperates on a read-eval loop in order to change states and respond to its environment.
+
+#### Classes
+`Avionics` - Implimentation of flight controller.
+
+#### Files
+`main.cpp` - Start point of flight controller.
+`config.h` - Mission specific configuration values.
+
 #TODO:
 1. microSD data logging of both raw & calculated values. Log both data & operations (transmitting on rockblock, transmitting on APRS, cutting down, feeding WD, etc)
 2. Reading, Filtering, Error-Checking of Pressure & Temperature values for BMP280's
