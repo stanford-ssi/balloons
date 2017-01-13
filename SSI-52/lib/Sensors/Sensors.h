@@ -17,12 +17,18 @@
 #include <Adafruit_MAX31855.h>
 #include "../../src/Config.h"
 
+class Sensors {
+public:
 /**********************************  SETUP  ***********************************/
-void   initSensors(void);
+  void init();
 /********************************  FUNCTIONS  *********************************/
-double getTempOut();
-double getTempIn();
-double getPressure();
-double getAltitude();
+  double getTempOut();
+  double getTempIn();
+  double getPressure();
+  double getAltitude();
+private:
+/*********************************  HELPERS  **********************************/
+  int8_t readData();
+};
 
 #endif

@@ -12,6 +12,7 @@
 #define AVIONICS_H
 
 #include "Config.h"
+#include <Sensors.h>
 #include "Data.h"
 
 class Avionics {
@@ -39,6 +40,7 @@ private:
   void   logFatalError(const char*);
 
   DataFrame DATA;
+  Sensors sensors;
 };
 
 #endif
