@@ -53,4 +53,4 @@ Here is the current status of the code:
 3. I2C current readings for Heater Trace, Cutdown FET, Dorji.
 4. Set appropriate bounds for current draw for each, add a buffer, and set as current limits after which the device will be hard reset.
 5. Watchdog interrupts (pulse pin high for 1ms, then low) every 2-10 seconds to disable hardware reset.
-6.RockBlock command parsing for cutdown and transmit rate and hardware resets.
+6. RockBlock command parsing for cutdown and transmit rate and hardware resets.

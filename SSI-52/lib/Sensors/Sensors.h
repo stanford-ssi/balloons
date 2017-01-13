@@ -26,9 +26,12 @@ public:
   double getTempIn();
   double getPressure();
   double getAltitude();
+  Sensors() : val(2) { }
+  int8_t val;
 private:
 /*********************************  HELPERS  **********************************/
   int8_t readData();
+
 };
 
 #endif
