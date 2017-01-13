@@ -9,11 +9,6 @@
 */
 
 #include "Sensors.h"
-/******************************  GLOBAL OBJECTS  *******************************/
-Adafruit_BMP280 bme1(BMP_CS1);
-Adafruit_BMP280 bme2(BMP_CS2);
-Adafruit_MPL3115A2 baro = Adafruit_MPL3115A2();
-Adafruit_MAX31855 thermocouple(THERMOCPL_CS);
 
 /**********************************  SETUP  ***********************************/
 /*

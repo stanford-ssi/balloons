@@ -8,12 +8,12 @@
   Data frame structure.
 */
 
-#ifndef DATA_H
-#define DATA_H
+#ifndef data_H
+#define data_H
 
 #include "Config.h"
 
-/**********************************  DATA  ************************************/
+/**********************************  data  ************************************/
 struct DataFrame {
   float   AscentRateBuffer[ASCENT_RATE_SIZE];
   double  VOLTAGE             = 0;

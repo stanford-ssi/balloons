@@ -73,12 +73,12 @@ void Avionics::sleep() {
  * This function updates the current data frame.
  */
 int8_t Avionics::readData() {
-  DATA.ALTITUDE_LAST = DATA.ALTITUDE_BMP;
-  DATA.TEMP_EXT      = sensors.getTempOut();
-  DATA.TEMP_IN       = sensors.getTempIn();
-  DATA.PRESS_BMP     = sensors.getPressure();
-  DATA.ALTITUDE_BMP  = sensors.getAltitude();
-  DATA.BLINK         = !DATA.BLINK;
+  data.ALTITUDE_LAST = data.ALTITUDE_BMP;
+  data.TEMP_EXT      = sensors.getTempOut();
+  data.TEMP_IN       = sensors.getTempIn();
+  data.PRESS_BMP     = sensors.getPressure();
+  data.ALTITUDE_BMP  = sensors.getAltitude();
+  data.BLINK         = !data.BLINK;
   return 0;
 }
 
@@ -106,16 +106,16 @@ int8_t Avionics::logData() {
  * This function prints the current data frame.
  */
 int8_t Avionics::printData() {
-  if (DATA.ALTITUDE_BMP < DEBUG_ALT) {
+  if (data.ALTITUDE_BMP < DEBUG_ALT) {
     Serial.print(millis());
     Serial.print(",");
-    Serial.print(DATA.ALTITUDE_BMP);
+    Serial.print(data.ALTITUDE_BMP);
     Serial.print(",");
-    Serial.print(DATA.TEMP_IN);
+    Serial.print(data.TEMP_IN);
     Serial.print(",");
-    Serial.print(DATA.TEMP_EXT);
+    Serial.print(data.TEMP_EXT);
     Serial.print(",");
-    Serial.print(DATA.PRESS_BMP);
+    Serial.print(data.PRESS_BMP);
     Serial.println();
   }
   return 0;

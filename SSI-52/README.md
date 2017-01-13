@@ -1,8 +1,8 @@
 # SSI HABEES:
-###A modular flight controler with payload interface for high altitude balloons
+###A modular flight controller with payload interface for high altitude balloons
 
 #Flight States:
-The avionics uses an Event Driven Programming model in order to clearly transition between states of opperation.
+The avionics uses an Event Driven Programming model in order to clearly transition between states of operation.
 
 #### States
 1. Pre-Launch  
@@ -15,7 +15,7 @@ The avionics uses an Event Driven Programming model in order to clearly transiti
  - 2d. Descent
 
 #Code Architecture:
-The avionics flight software opperates on a read-eval loop in order to change states and respond to its environment.
+The avionics flight software operates on a read-eval loop in order to change states and respond to its environment.
 
 #### Files
 `main.cpp` - Start point of flight controller.
@@ -23,13 +23,13 @@ The avionics flight software opperates on a read-eval loop in order to change st
 `config.h` - Mission specific configuration values.
 
 #### Classes
-`Avionics` - Implimentation of flight controller.
+`Avionics` - Implementation of flight controller.
 
 `Data` - Structure of current data frame.
 
 `Sensors` - Interface to current, filtered data from hardware.
 
-#Implimentation Details:
+#Implementation Details:
 Here is the current status of the code:
 
 ####Flight Critical Systems

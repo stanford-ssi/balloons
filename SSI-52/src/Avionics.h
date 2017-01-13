@@ -39,7 +39,7 @@ private:
   void   faultLED();
   void   logFatalError(const char*);
 
-  DataFrame DATA;
+  DataFrame data;
   Sensors sensors;
 };
 
