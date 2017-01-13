@@ -19,11 +19,14 @@ The avionics flight software opperates on a read-eval loop in order to change st
 
 #### Classes
 `Avionics` - Implimentation of flight controller.
+
 `Data` - Structure of current data frame.
+
 `Sensors` - Interface to current, filtered data from hardware.
 
 #### Files
 `main.cpp` - Start point of flight controller.
+
 `config.h` - Mission specific configuration values.
 
 #Implimentation Details:
