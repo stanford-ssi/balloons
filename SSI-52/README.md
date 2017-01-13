@@ -17,17 +17,17 @@ The avionics uses an Event Driven Programming model in order to clearly transiti
 #Code Architecture:
 The avionics flight software opperates on a read-eval loop in order to change states and respond to its environment.
 
+#### Files
+`main.cpp` - Start point of flight controller.
+
+`config.h` - Mission specific configuration values.
+
 #### Classes
 `Avionics` - Implimentation of flight controller.
 
 `Data` - Structure of current data frame.
 
 `Sensors` - Interface to current, filtered data from hardware.
-
-#### Files
-`main.cpp` - Start point of flight controller.
-
-`config.h` - Mission specific configuration values.
 
 #Implimentation Details:
 Here is the current status of the code:
@@ -46,6 +46,7 @@ Here is the current status of the code:
 11. Integration of uBlox M8Q GPS -- this means gathering all of the possible useful data (including lat, long, alt, numSats, VDOP/PDOP if possible, others -- whatever you can).
 12. GPS successful set to Flight Mode.
 13. RockBlock data downlink.
+
 ####Useful Flight Features
 1. APRS downlink with Dorji.
 2. CAN communication with Medusa to get current state of system.
