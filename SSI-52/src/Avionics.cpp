@@ -21,6 +21,7 @@ void Avionics::init() {
   sensors.init();
   PCB.init();
   if(!Serial) PCB.faultLED();
+  if(!SD.begin(SD_CS)) PCB.faultLED();
 
   data.GPS_SET_SUCESS = false;
   data.RB_SET_SUCESS = false;
@@ -32,6 +33,11 @@ void Avionics::init() {
   dataFile.println("Stanford Student Space Initiative Balloons Launch " + MISSION_NUMBER + "\n" + CSV_DATA_HEADER);
   dataFile.close();
 
+  gpsModule.init();
+  RBModule.init();
+  radioModule.init();
+  canModule.init();
+
 }
 
 /********************************  FUNCTIONS  *********************************/
@@ -42,7 +48,7 @@ void Avionics::init() {
  */
 void Avionics::updateData() {
   if(readData()    < 0) logFatalError("failed to read Data");
-  // if(logData()     < 0) logFatalError("failed to log Data");
+  if(logData()     < 0) logFatalError("failed to log Data");
 }
 
 /*
@@ -191,7 +197,9 @@ int8_t Avionics::runCutdown() {
  * This function sends the current data frame over the ROCKBLOCK IO.
  */
 int8_t Avionics::sendSATCOMS() {
-  String messageToSend = "";
+  String messageToSend = writeState();
+  data.RB_SENT_COMMS++;
+  RBModule.write(data.COMMS_BUFFER, messageToSend.length());
   return 0;
 }
 
@@ -201,7 +209,8 @@ int8_t Avionics::sendSATCOMS() {
  * This function sends the current data frame over the APRS RF IO.
  */
 int8_t Avionics::sendAPRS() {
-  String messageToSend = "";
+  String messageToSend = writeState();
+  radioModule.write(data.COMMS_BUFFER, messageToSend.length());
   return 0;
 }
 
@@ -211,7 +220,25 @@ int8_t Avionics::sendAPRS() {
  * This function sends the current data frame over the CAN BUS IO.
  */
 int8_t Avionics::sendCAN() {
-  String messageToSend = "";
+  String messageToSend = writeState();
+  canModule.write(data.COMMS_BUFFER, messageToSend.length());
+  return 0;
+}
+
+/*
+ * Function: displayState
+ * -------------------
+ * This function displays the current avionics state.
+ */
+int8_t Avionics::displayState() {
+    PCB.writeLED(BAT_GOOD,  (data.VOLTAGE >= 3.63));
+    PCB.writeLED(I_GOOD,    (data.CURRENT > 0.0 && data.CURRENT <= 0.5));
+    PCB.writeLED(P_GOOD,    (data.ALTITUDE_BMP > -50 && data.ALTITUDE_BMP < 200));
+    PCB.writeLED(T_GOOD,    (data.TEMP_IN > 15 && data.TEMP_IN < 50));
+    PCB.writeLED(CAN_GOOD,  (data.CAN_SET_SUCESS));
+    PCB.writeLED(RB_GOOD,   (data.RB_SET_SUCESS));
+    PCB.writeLED(GPS_GOOD,  (data.LAT_GPS != 1000.0 && data.LAT_GPS != 0.0 && data.LONG_GPS != 1000.0 && data.LONG_GPS != 0.0));
+    PCB.writeLED(HEARTBEAT, (data.BLINK));
   return 0;
 }
 
@@ -253,20 +280,41 @@ int8_t Avionics::printState() {
 }
 
 /*
- * Function: displayState
+ * Function: writeState
  * -------------------
- * This function displays the current avionics state.
+ * This function compresses the data frame into a bit stream.
  */
-int8_t Avionics::displayState() {
-    PCB.writeLED(BAT_GOOD,  (data.VOLTAGE >= 3.63));
-    PCB.writeLED(I_GOOD,    (data.CURRENT > 0.0 && data.CURRENT <= 0.5));
-    PCB.writeLED(P_GOOD,    (data.ALTITUDE_BMP > -50 && data.ALTITUDE_BMP < 200));
-    PCB.writeLED(T_GOOD,    (data.TEMP_IN > 15 && data.TEMP_IN < 50));
-    PCB.writeLED(CAN_GOOD,  (data.CAN_SET_SUCESS));
-    PCB.writeLED(RB_GOOD,   (data.RB_SET_SUCESS));
-    PCB.writeLED(GPS_GOOD,  (data.LAT_GPS != 1000.0 && data.LAT_GPS != 0.0 && data.LONG_GPS != 1000.0 && data.LONG_GPS != 0.0));
-    PCB.writeLED(HEARTBEAT, (data.BLINK));
-  return 0;
+String Avionics::writeState() {
+  String messageToSend = "";
+  messageToSend += data.TIME;
+  messageToSend += ",";
+  messageToSend += data.LOOP_RATE;
+  messageToSend += ",";
+  messageToSend += data.VOLTAGE;
+  messageToSend += ",";
+  messageToSend += data.CURRENT;
+  messageToSend += ",";
+  messageToSend += data.ALTITUDE_BMP;
+  messageToSend += ",";
+  messageToSend += data.ASCENT_RATE;
+  messageToSend += ",";
+  messageToSend += data.TEMP_IN;
+  messageToSend += ",";
+  messageToSend += data.TEMP_EXT;
+  messageToSend += ",";
+  messageToSend += String(data.LAT_GPS, 4);
+  messageToSend += ",";
+  messageToSend += String(data.LONG_GPS, 4);
+  messageToSend += ",";
+  messageToSend += data.SPEED_GPS;
+  messageToSend += ",";
+  messageToSend += data.ALTITUDE_GPS;
+  messageToSend += ",";
+  messageToSend += data.RB_SENT_COMMS;
+  messageToSend += ",";
+  messageToSend += data.CUTDOWN_STATE;
+  messageToSend += "\n";
+  return messageToSend;
 }
 
 /*

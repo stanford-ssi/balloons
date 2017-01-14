@@ -13,4 +13,16 @@
 #ifndef CAN_H
 #define CAN_H
 
+#include "../../src/Config.h"
+
+class CAN {
+public:
+/**********************************  SETUP  ***********************************/
+  void init();
+/********************************  FUNCTIONS  *********************************/
+  uint8_t write(char* buff, uint8_t len);
+private:
+/*********************************  HELPERS  **********************************/
+};
+
 #endif

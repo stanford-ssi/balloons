@@ -16,6 +16,10 @@
 #include <SD.h>
 #include <Sensors.h>
 #include <Hardware.h>
+#include <GPS.h>
+#include <RockBlock.h>
+#include <APRS.h>
+#include <CAN.h>
 
 class Avionics {
 public:
@@ -41,14 +45,20 @@ private:
   int8_t sendAPRS();
   int8_t sendCAN();
 
-  int8_t printState();
   int8_t displayState();
+  int8_t printState();
+  String writeState();
   void   logFatalError(const char*);
 
   DataFrame data;
   File dataFile;
   Hardware PCB;
   Sensors sensors;
+
+  GPS gpsModule;
+  RockBlock RBModule;
+  APRS radioModule;
+  CAN canModule;
 };
 
 #endif
