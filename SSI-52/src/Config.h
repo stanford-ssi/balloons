@@ -23,12 +23,12 @@ static const uint16_t  CUTDOWN_ALT       = 20000;
 static const uint16_t  DEBUG_ALT         =   300;
 static const double    PID_SETPOINT      =     0;
 static const uint16_t  TRANSMIT_RATE     =  5000;
-static const uint8_t   LOOP_RATE         =   100;
+static const uint8_t   LOOP_RATE         =   50;
 
 /*****************************  TEENSY PIN OUTS  ******************************/
 static const uint8_t SD_CS               =    21;
 static const uint8_t ROCKBLOCK_SLEEP     =     9;
-static const uint8_t VMON                =   A13;
+static const uint8_t VBAT_PIN            =   A13;
 static const uint8_t BMP_CS1             =    20;
 static const uint8_t BMP_CS2             =    15;
 static const uint8_t THERMOCPL_CS        =    22;

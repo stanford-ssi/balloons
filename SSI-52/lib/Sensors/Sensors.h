@@ -8,8 +8,8 @@
   Interface to sensors on avionics hardware.
 */
 
-#ifndef Sensors_H
-#define Sensors_H
+#ifndef SENSORS_H
+#define SENSORS_H
 
 #include <SPI.h>
 #include <Adafruit_BMP280.h>
@@ -27,15 +27,13 @@ public:
   }
   void init();
 /********************************  FUNCTIONS  *********************************/
+  double getVoltage();
   double getTempOut();
   double getTempIn();
   double getPressure();
   double getAltitude();
-  int8_t val;
 private:
 /*********************************  HELPERS  **********************************/
-  int8_t readData();
-
   Adafruit_BMP280 bme1;
   Adafruit_BMP280 bme2;
   Adafruit_MAX31855 thermocouple;

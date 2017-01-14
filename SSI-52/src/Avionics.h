@@ -12,8 +12,9 @@
 #define AVIONICS_H
 
 #include "Config.h"
-#include <Sensors.h>
 #include "Data.h"
+#include <Sensors.h>
+#include <Hardware.h>
 
 class Avionics {
 public:
@@ -29,17 +30,22 @@ private:
 /*********************************  HELPERS  **********************************/
   int8_t readData();
   int8_t logData();
-  int8_t printData();
-  int8_t debug();
+
+  int8_t calcState();
+  int8_t runDebug();
   int8_t runHeaters();
   int8_t runCutdown();
+
   int8_t sendSATCOMS();
   int8_t sendAPRS();
   int8_t sendCAN();
-  void   faultLED();
+
+  int8_t printState();
+  int8_t displayState();
   void   logFatalError(const char*);
 
   DataFrame data;
+  Hardware PCB;
   Sensors sensors;
 };
 

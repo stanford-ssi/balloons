@@ -18,9 +18,9 @@
  */
 void Avionics::init() {
   Serial.begin(9600);
-  pinMode(FAULT_LED, OUTPUT);
-  if(!Serial) faultLED();
+  if(!Serial) PCB.faultLED();
   sensors.init();
+  PCB.init();
 }
 
 /********************************  FUNCTIONS  *********************************/
@@ -32,7 +32,6 @@ void Avionics::init() {
 void Avionics::updateData() {
   if(readData()    < 0) logFatalError("failed to read Data");
   if(logData()     < 0) logFatalError("failed to log Data");
-  if(printData()   < 0) logFatalError("failed to print Data");
 }
 
 /*
@@ -41,7 +40,8 @@ void Avionics::updateData() {
  * This function intelligently reacts to the current data frame.
  */
 void Avionics::evaluateState() {
-  if(debug()       < 0) logFatalError("failed to debug state");
+  if(calcState()   < 0) logFatalError("failed to calculate state");
+  if(runDebug()    < 0) logFatalError("failed to run debug");
   if(runHeaters()  < 0) logFatalError("failed to run heaters");
   if(runCutdown()  < 0) logFatalError("failed to run cutdown");
 }
@@ -73,21 +73,13 @@ void Avionics::sleep() {
  * This function updates the current data frame.
  */
 int8_t Avionics::readData() {
+  data.BLINK         = !data.BLINK;
   data.ALTITUDE_LAST = data.ALTITUDE_BMP;
+  data.VOLTAGE       = sensors.getVoltage();
   data.TEMP_EXT      = sensors.getTempOut();
   data.TEMP_IN       = sensors.getTempIn();
   data.PRESS_BMP     = sensors.getPressure();
   data.ALTITUDE_BMP  = sensors.getAltitude();
-  data.BLINK         = !data.BLINK;
-  return 0;
-}
-
-/*
- * Function: debug
- * -------------------
- * This function error checks the current data frame.
- */
-int8_t Avionics::debug() {
   return 0;
 }
 
@@ -101,25 +93,30 @@ int8_t Avionics::logData() {
 }
 
 /*
- * Function: printData
+ * Function: calcState
  * -------------------
- * This function prints the current data frame.
+ * This function sets the appropriate values and flags based on the current data frame.
  */
-int8_t Avionics::printData() {
-  if (data.ALTITUDE_BMP < DEBUG_ALT) {
-    Serial.print(millis());
-    Serial.print(",");
-    Serial.print(data.ALTITUDE_BMP);
-    Serial.print(",");
-    Serial.print(data.TEMP_IN);
-    Serial.print(",");
-    Serial.print(data.TEMP_EXT);
-    Serial.print(",");
-    Serial.print(data.PRESS_BMP);
-    Serial.println();
+int8_t Avionics::calcState() {
+  if(data.ENABLE_DEBUG && (data.ALTITUDE_LAST >= DEBUG_ALT) && (data.ALTITUDE_BMP >= DEBUG_ALT)) {
+    data.ENABLE_DEBUG = false;
   }
   return 0;
 }
+
+/*
+ * Function: runDebug
+ * -------------------
+ * This function provides debuging information.
+ */
+int8_t Avionics::runDebug() {
+  if(data.ENABLE_DEBUG) {
+    if(displayState() < 0) return -1;
+    if(printState()   < 0) return -1;
+  }
+  return 0;
+}
+
 
 /*
  * Function: runHeaters
@@ -133,9 +130,12 @@ int8_t Avionics::runHeaters() {
 /*
  * Function: runCutdown
  * -------------------
- * This function cutsdown if nessisary.
+ * This function cuts down the payload if nessisary.
  */
 int8_t Avionics::runCutdown() {
+  if(!data.CUTDOWN_STATE && (data.ALTITUDE_LAST >= CUTDOWN_ALT) && (data.ALTITUDE_BMP >= CUTDOWN_ALT)) {
+    return PCB.cutDown();
+  }
   return 0;
 }
 
@@ -145,6 +145,7 @@ int8_t Avionics::runCutdown() {
  * This function sends the current data frame over the ROCKBLOCK IO.
  */
 int8_t Avionics::sendSATCOMS() {
+  String messageToSend = "";
   return 0;
 }
 
@@ -154,6 +155,7 @@ int8_t Avionics::sendSATCOMS() {
  * This function sends the current data frame over the APRS RF IO.
  */
 int8_t Avionics::sendAPRS() {
+  String messageToSend = "";
   return 0;
 }
 
@@ -163,18 +165,44 @@ int8_t Avionics::sendAPRS() {
  * This function sends the current data frame over the CAN BUS IO.
  */
 int8_t Avionics::sendCAN() {
+  String messageToSend = "";
   return 0;
 }
 
 /*
- * Function: faultLED
+ * Function: printState
  * -------------------
- * This function alerts the user if there has been a Fatal error.
+ * This function prints the current avionics state.
  */
-void Avionics::faultLED() {
-  digitalWrite(FAULT_LED, HIGH);
-  delay(100);
-  digitalWrite(FAULT_LED, LOW);
+int8_t Avionics::printState() {
+  Serial.print(millis());
+  Serial.print(",");
+  Serial.print(data.ALTITUDE_BMP);
+  Serial.print(",");
+  Serial.print(data.TEMP_IN);
+  Serial.print(",");
+  Serial.print(data.TEMP_EXT);
+  Serial.print(",");
+  Serial.print(data.PRESS_BMP);
+  Serial.println();
+  return 0;
+}
+
+/*
+ * Function: displayState
+ * -------------------
+ * This function displays the current avionics state.
+ */
+int8_t Avionics::displayState() {
+    PCB.writeLED(BAT_GOOD,  (data.VOLTAGE >= 3.63));
+    PCB.writeLED(I_GOOD,    (data.CURRENT > 0.0 && data.CURRENT <= 0.5));
+    PCB.writeLED(P_GOOD,    (data.ALTITUDE_BMP > -50 && data.ALTITUDE_BMP < 200));
+    PCB.writeLED(T_GOOD,    (data.TEMP_IN > 15 && data.TEMP_IN < 50));
+    PCB.writeLED(CAN_GOOD,  (data.CAN_SET_SUCESS));
+    PCB.writeLED(RB_GOOD,   (data.RB_SET_SUCESS));
+    PCB.writeLED(GPS_GOOD,  (data.LAT != 1000.0 && data.LAT != 0.0 && data.LONG != 1000.0 && data.LONG != 0.0));
+    PCB.writeLED(HEARTBEAT, (data.BLINK));
+  return 0;
 }
 
 /*
@@ -183,7 +211,7 @@ void Avionics::faultLED() {
  * This function logs information if there has been a Fatal error.
  */
 void Avionics::logFatalError(const char* debug) {
-  faultLED();
+  PCB.faultLED();
   Serial.print("FATAL ERROR: ");
   Serial.print(debug);
   Serial.println("...");

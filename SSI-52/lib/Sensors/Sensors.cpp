@@ -12,18 +12,16 @@
 
 /**********************************  SETUP  ***********************************/
 /*
-  function: initSensors
+  function: init
   ---------------------------------
   This function initializes the sensor hardware.
 */
 void Sensors::init() {
   if (!bme1.begin()) {
     Serial.println("Could not find a valid BMP280 sensor, check wiring!");
-    while (1);
   }
   if (!bme2.begin()) {
     Serial.println("Could not find a valid BMP280 sensor, check wiring!");
-    while (1);
   }
   if (! baro.begin()) {
     Serial.println("Could not find a valid MPL3115A2 sensor, check wiring!");
@@ -31,6 +29,15 @@ void Sensors::init() {
 }
 
 /********************************  FUNCTIONS  *********************************/
+/*
+  function: getVoltage
+  ---------------------------------
+  This function gets the battery voltage.
+*/
+double Sensors::getVoltage() {
+  return (analogRead(VBAT_PIN) / 310.0) * 4;
+}
+
 /*
   function: getTempOut
   ---------------------------------
@@ -81,14 +88,4 @@ double Sensors::getAltitude() {
   if (altitude_1 >= -50 && altitude_2 <= -50) return altitude_1;
   if (altitude_2 >= -50 && altitude_1 <= -50) return altitude_2;
   else return baro.getAltitude();
-}
-
-/*********************************  HELPERS  **********************************/
-/*
- * Function: readData
- * -------------------
- * This function updates the current data frame.
- */
-int8_t Sensors::readData() {
-  return 0;
 }

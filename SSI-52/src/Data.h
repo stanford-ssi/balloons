@@ -15,9 +15,11 @@
 
 /**********************************  data  ************************************/
 struct DataFrame {
+  bool    ENABLE_DEBUG      =  true;
   float   AscentRateBuffer[ASCENT_RATE_SIZE];
   double  VOLTAGE             = 0;
-  double ALTITUDE_LAST        = 0;
+  double  CURRENT             = 0;
+  double  ALTITUDE_LAST       = 0;
   double  ALTITUDE_GPS        = 0;
   double  ALTITUDE_BMP        = 0;
   double  ASCENT_RATE         = 0;
@@ -29,9 +31,13 @@ struct DataFrame {
   int     messagesSent        = 0;
   double  SPEED_GPS           = 0;
   double  PRESS_BMP           = 0;
-  double  CURRENT             = 0;
   bool    BLINK               = 0;
   String  TIMER               = "";
+
+  bool CAN_SET_SUCESS         = false;
+  bool RB_SET_SUCESS          = false;
+
+
 } ;
 
 #endif
