@@ -16,41 +16,39 @@
 
 /****************************  EDITABLE CONSTANTS  ****************************/
 static const String    MISSION_NUMBER    = "SSI-52";
-static const String    CSV_data_HEADER   = "TIME,MILLIS,LOOP,VOLTAGE,ALT_GPS,ALT_BMP,ASCENT_RATE,TEMP_IN,TEMP_EXT,LAT,LONG,SPEED_GPS,PRESS_BMP,CURRENT,CUTDOWN_STATE,MESSAGES SENT";
-static const bool      ENABLE_CUTDOWN    =  true;
-static const uint16_t  ASCENT_RATE_SIZE  =   200;
-static const uint16_t  CUTDOWN_ALT       = 20000;
+static const String    CSV_DATA_HEADER   = "TIME,LOOP_RATE,VOLTAGE,CURRENT,ALTITUDE_BMP,ASCENT_RATE,TEMP_IN,TEMP_EXT,LAT_GPS,LONG_GPS,SPEED_GPS,ALTITUDE_GPS,RB_SENT_COMMS,CUTDOWN_STATE";
+static const bool      CUTDOWN_ENABLE    =  true;
+static const uint16_t  BUFFER_SIZE       =   200;
 static const uint16_t  DEBUG_ALT         =   300;
+static const uint16_t  CUTDOWN_ALT       = 20000;
+static const uint8_t   LOOP_RATE         =    50;
 static const double    PID_SETPOINT      =     0;
-static const uint16_t  TRANSMIT_RATE     =  5000;
-static const uint8_t   LOOP_RATE         =   50;
+static const float     RB_COMM_RATE      =   2.0;
 
 /*****************************  TEENSY PIN OUTS  ******************************/
-static const uint8_t SD_CS               =    21;
-static const uint8_t ROCKBLOCK_SLEEP     =     9;
-static const uint8_t VBAT_PIN            =   A13;
-static const uint8_t BMP_CS1             =    20;
-static const uint8_t BMP_CS2             =    15;
-static const uint8_t THERMOCPL_CS        =    22;
-static const uint8_t CUTDOWN_PIN         =    25;
-static const uint8_t HEATER_PIN          =    23;
-static const uint8_t FAULT_LED           =    13;
+static const uint8_t   VBAT_PIN          =   A13;
+static const uint8_t   SD_CS             =    21;
+static const uint8_t   BMP_CS1           =    20;
+static const uint8_t   BMP_CS2           =    15;
+static const uint8_t   THERMOCPL_CS      =    22;
+static const uint8_t   CUTDOWN_PIN       =    25;
+static const uint8_t   HEATER_PIN        =    23;
+static const uint8_t   FAULT_LED         =    13;
 
-static const uint8_t GPS_ENABLE          =    26;
+static const uint8_t   ROCKBLOCK_SLEEP   =     9;
+static const uint8_t   GPS_ENABLE        =    26;
+static const uint8_t   RADIO_ENABLE      =    A0;
+static const uint8_t   DRA_TX            =   A16;
+static const uint8_t   DRA_RX            =   A17;
+static const uint8_t   DRA_PTT           =    A2;
 
-static const uint8_t DRA_TX              =   A16;
-static const uint8_t DRA_RX              =   A17;
-static const uint8_t PTT                 =    A2;
-static const uint8_t RADIO_ENABLE        =    A0;
-
-/***************************  MULTIPLEXER PIN OUTS  ***************************/
-static const uint8_t CAN_GOOD           =     0;
-static const uint8_t RB_GOOD            =     1;
-static const uint8_t GPS_GOOD           =     2;
-static const uint8_t HEARTBEAT          =     3;
-static const uint8_t BAT_GOOD           =     4;
-static const uint8_t I_GOOD             =     5;
-static const uint8_t P_GOOD             =     6;
-static const uint8_t T_GOOD             =     7;
+static const uint8_t   CAN_GOOD         =     0;
+static const uint8_t   RB_GOOD          =     1;
+static const uint8_t   GPS_GOOD         =     2;
+static const uint8_t   HEARTBEAT        =     3;
+static const uint8_t   BAT_GOOD         =     4;
+static const uint8_t   I_GOOD           =     5;
+static const uint8_t   P_GOOD           =     6;
+static const uint8_t   T_GOOD           =     7;
 
 #endif

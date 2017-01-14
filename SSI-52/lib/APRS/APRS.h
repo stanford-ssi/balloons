@@ -12,4 +12,10 @@
 #ifndef APRS_H
 #define APRS_H
 
+//Global variable specified in Config.h
+// static const uint8_t   RADIO_ENABLE      =    A0;
+// static const uint8_t   DRA_TX            =   A16;
+// static const uint8_t   DRA_RX            =   A17;
+// static const uint8_t   DRA_PTT           =    A2;
+
 #endif

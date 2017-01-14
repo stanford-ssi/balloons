@@ -18,9 +18,20 @@
  */
 void Avionics::init() {
   Serial.begin(9600);
-  if(!Serial) PCB.faultLED();
   sensors.init();
   PCB.init();
+  if(!Serial) PCB.faultLED();
+
+  data.GPS_SET_SUCESS = false;
+  data.RB_SET_SUCESS = false;
+  data.CAN_SET_SUCESS = false;
+
+  Serial.println("Stanford Student Space Initiative Balloons Launch "+ MISSION_NUMBER + "\n" + CSV_DATA_HEADER);
+  dataFile = SD.open("data.txt", FILE_WRITE);
+  if(!dataFile) PCB.faultLED();
+  dataFile.println("Stanford Student Space Initiative Balloons Launch " + MISSION_NUMBER + "\n" + CSV_DATA_HEADER);
+  dataFile.close();
+
 }
 
 /********************************  FUNCTIONS  *********************************/
@@ -31,7 +42,7 @@ void Avionics::init() {
  */
 void Avionics::updateData() {
   if(readData()    < 0) logFatalError("failed to read Data");
-  if(logData()     < 0) logFatalError("failed to log Data");
+  // if(logData()     < 0) logFatalError("failed to log Data");
 }
 
 /*
@@ -89,6 +100,37 @@ int8_t Avionics::readData() {
  * This function logs the current data frame.
  */
 int8_t Avionics::logData() {
+  dataFile = SD.open("data.txt", FILE_WRITE);
+  if(!dataFile) return -1;
+  dataFile.print(data.TIME);
+  dataFile.print(",");
+  dataFile.print(data.LOOP_RATE);
+  dataFile.print(",");
+  dataFile.print(data.VOLTAGE);
+  dataFile.print(",");
+  dataFile.print(data.CURRENT);
+  dataFile.print(",");
+  dataFile.print(data.ALTITUDE_BMP);
+  dataFile.print(",");
+  dataFile.print(data.ASCENT_RATE);
+  dataFile.print(",");
+  dataFile.print(data.TEMP_IN);
+  dataFile.print(",");
+  dataFile.print(data.TEMP_EXT);
+  dataFile.print(",");
+  dataFile.print(String(data.LAT_GPS, 4));
+  dataFile.print(",");
+  dataFile.print(String(data.LONG_GPS, 4));
+  dataFile.print(",");
+  dataFile.print(data.SPEED_GPS);
+  dataFile.print(",");
+  dataFile.print(data.ALTITUDE_GPS);
+  dataFile.print(",");
+  dataFile.print(data.RB_SENT_COMMS);
+  dataFile.print(",");
+  dataFile.print(data.CUTDOWN_STATE);
+  dataFile.print("\n");
+  dataFile.close();
   return 0;
 }
 
@@ -98,9 +140,12 @@ int8_t Avionics::logData() {
  * This function sets the appropriate values and flags based on the current data frame.
  */
 int8_t Avionics::calcState() {
-  if(data.ENABLE_DEBUG && (data.ALTITUDE_LAST >= DEBUG_ALT) && (data.ALTITUDE_BMP >= DEBUG_ALT)) {
-    data.ENABLE_DEBUG = false;
+  if(data.DEBUG_STATE && (data.ALTITUDE_LAST >= DEBUG_ALT) && (data.ALTITUDE_BMP >= DEBUG_ALT)) {
+    data.DEBUG_STATE = false;
   }
+  // long    LOOP_START            =     0;
+  // double  ALTITUDE_LAST         =     0;
+  // float   AscentRateBuffer[BUFFER_SIZE];
   return 0;
 }
 
@@ -110,7 +155,7 @@ int8_t Avionics::calcState() {
  * This function provides debuging information.
  */
 int8_t Avionics::runDebug() {
-  if(data.ENABLE_DEBUG) {
+  if(data.DEBUG_STATE) {
     if(displayState() < 0) return -1;
     if(printState()   < 0) return -1;
   }
@@ -133,6 +178,7 @@ int8_t Avionics::runHeaters() {
  * This function cuts down the payload if nessisary.
  */
 int8_t Avionics::runCutdown() {
+  //CUTDOWN_ENABLE
   if(!data.CUTDOWN_STATE && (data.ALTITUDE_LAST >= CUTDOWN_ALT) && (data.ALTITUDE_BMP >= CUTDOWN_ALT)) {
     return PCB.cutDown();
   }
@@ -175,16 +221,34 @@ int8_t Avionics::sendCAN() {
  * This function prints the current avionics state.
  */
 int8_t Avionics::printState() {
-  Serial.print(millis());
+  Serial.print(data.TIME);
+  Serial.print(",");
+  Serial.print(data.LOOP_RATE);
+  Serial.print(",");
+  Serial.print(data.VOLTAGE);
+  Serial.print(",");
+  Serial.print(data.CURRENT);
   Serial.print(",");
   Serial.print(data.ALTITUDE_BMP);
+  Serial.print(",");
+  Serial.print(data.ASCENT_RATE);
   Serial.print(",");
   Serial.print(data.TEMP_IN);
   Serial.print(",");
   Serial.print(data.TEMP_EXT);
   Serial.print(",");
-  Serial.print(data.PRESS_BMP);
-  Serial.println();
+  Serial.print(String(data.LAT_GPS, 4));
+  Serial.print(",");
+  Serial.print(String(data.LONG_GPS, 4));
+  Serial.print(",");
+  Serial.print(data.SPEED_GPS);
+  Serial.print(",");
+  Serial.print(data.ALTITUDE_GPS);
+  Serial.print(",");
+  Serial.print(data.RB_SENT_COMMS);
+  Serial.print(",");
+  Serial.print(data.CUTDOWN_STATE);
+  Serial.print("\n");
   return 0;
 }
 
@@ -200,7 +264,7 @@ int8_t Avionics::displayState() {
     PCB.writeLED(T_GOOD,    (data.TEMP_IN > 15 && data.TEMP_IN < 50));
     PCB.writeLED(CAN_GOOD,  (data.CAN_SET_SUCESS));
     PCB.writeLED(RB_GOOD,   (data.RB_SET_SUCESS));
-    PCB.writeLED(GPS_GOOD,  (data.LAT != 1000.0 && data.LAT != 0.0 && data.LONG != 1000.0 && data.LONG != 0.0));
+    PCB.writeLED(GPS_GOOD,  (data.LAT_GPS != 1000.0 && data.LAT_GPS != 0.0 && data.LONG_GPS != 1000.0 && data.LONG_GPS != 0.0));
     PCB.writeLED(HEARTBEAT, (data.BLINK));
   return 0;
 }

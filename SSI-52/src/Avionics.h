@@ -13,6 +13,7 @@
 
 #include "Config.h"
 #include "Data.h"
+#include <SD.h>
 #include <Sensors.h>
 #include <Hardware.h>
 
@@ -45,6 +46,7 @@ private:
   void   logFatalError(const char*);
 
   DataFrame data;
+  File dataFile;
   Hardware PCB;
   Sensors sensors;
 };

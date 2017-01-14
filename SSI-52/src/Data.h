@@ -15,29 +15,30 @@
 
 /**********************************  data  ************************************/
 struct DataFrame {
-  bool    ENABLE_DEBUG      =  true;
-  float   AscentRateBuffer[ASCENT_RATE_SIZE];
-  double  VOLTAGE             = 0;
-  double  CURRENT             = 0;
-  double  ALTITUDE_LAST       = 0;
-  double  ALTITUDE_GPS        = 0;
-  double  ALTITUDE_BMP        = 0;
-  double  ASCENT_RATE         = 0;
-  double  TEMP_IN             = 0;
-  double  TEMP_EXT            = 0;
-  float   LAT                 = 0;
-  float   LONG                = 0;
-  bool    CUTDOWN_STATE       = 0;
-  int     messagesSent        = 0;
-  double  SPEED_GPS           = 0;
-  double  PRESS_BMP           = 0;
-  bool    BLINK               = 0;
-  String  TIMER               = "";
+  String  TIME                  =    "";
+  long    LOOP_RATE             =     0;
+  double  VOLTAGE               =     0;
+  double  CURRENT               =     0;
+  double  ALTITUDE_BMP          =     0;
+  double  ASCENT_RATE           =     0;
+  double  TEMP_IN               =     0;
+  double  TEMP_EXT              =     0;
+  float   LAT_GPS               =     0;
+  float   LONG_GPS              =     0;
+  double  SPEED_GPS             =     0;
+  double  ALTITUDE_GPS          =     0;
+  int     RB_SENT_COMMS         =     0;
+  bool    CUTDOWN_STATE         = false;
 
-  bool CAN_SET_SUCESS         = false;
-  bool RB_SET_SUCESS          = false;
-
-
+  bool    DEBUG_STATE           =  true;
+  bool    BLINK                 =  true;
+  bool    GPS_SET_SUCESS        = false;
+  bool    RB_SET_SUCESS         = false;
+  bool    CAN_SET_SUCESS        = false;
+  double  ALTITUDE_LAST         =     0;
+  double  PRESS_BMP             =     0;
+  long    LOOP_START            =     0;
+  float   AscentRateBuffer[BUFFER_SIZE];
 } ;
 
 #endif
