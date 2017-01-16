@@ -15,6 +15,8 @@
 #include <Adafruit_BMP280.h>
 #include <Adafruit_MPL3115A2.h>
 #include <Adafruit_MAX31855.h>
+#include <Adafruit_INA219.h>
+#include <TimeLib.h>
 #include "../../src/Config.h"
 
 class Sensors {
@@ -27,23 +29,25 @@ public:
   }
   int8_t init();
 /********************************  FUNCTIONS  *********************************/
-  double getVoltage();
-  double getTempOut();
-  double getTempIn();
-  double getPressure();
-  double getAltitude();
+  const char* getTime();
+  double      getVoltage();
+  double      getCurrent();
+  double      getTempOut();
+  double      getTempIn();
+  double      getPressure();
+  double      getAltitude();
 private:
 /*********************************  HELPERS  **********************************/
+void          convertDigits(uint8_t start, uint8_t digits);
+void          convertYear(uint8_t start, int year);
+/*********************************  OBJECTS  **********************************/
   Adafruit_BMP280 bme1;
   Adafruit_BMP280 bme2;
-  Adafruit_MAX31855 thermocouple;
   Adafruit_MPL3115A2 baro = Adafruit_MPL3115A2();
-
-  //9dof??
-  //ina219
-  // radio   1000101
-  // cutdown 1000000
-  //heaters  1000001
+  Adafruit_MAX31855 thermocouple;
+  Adafruit_INA219 inaRadio;
+  Adafruit_INA219 inaCutdown;
+  Adafruit_INA219 inaHeater;
 };
 
 #endif

@@ -49,6 +49,7 @@ private:
   int8_t printState();
   String writeState();
   void   logAlert(const char*, bool fatal);
+  void   watchdog();
 /*********************************  OBJECTS  **********************************/
   DataFrame data;
   File dataFile;

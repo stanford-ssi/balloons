@@ -12,13 +12,13 @@
 #ifndef RockBlock_H
 #define RockBlock_H
 
+#include <IridiumSBD.h>
 #include "../../src/Config.h"
 
 /*
   Global variable specified in Config.h
   --------------------------
   static const uint16_t  RB_BAUD            = 19200;
-  static const float     RB_COMM_RATE      =   2.0;
   static const uint8_t   RB_SLEEP          =     9;
 */
 

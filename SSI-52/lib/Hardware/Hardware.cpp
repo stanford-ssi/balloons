@@ -19,6 +19,7 @@
 void Hardware::init() {
   mcp.begin();
 
+  pinMode(WATCHDOG_PIN, OUTPUT);
   pinMode(FAULT_LED, OUTPUT);
   pinMode(HEATER_PIN, OUTPUT);
   pinMode(CUTDOWN_PIN, OUTPUT);
@@ -64,9 +65,9 @@ int8_t Hardware::faultLED() {
   This function runs the PID heater within the board.
 */
 int8_t Hardware::heater(double temp) {
-  PID_temp_ptr = temp;
+  PIDTempPtr = temp;
   pid.Compute();
-  if (PID_out_ptr != 0.0) analogWrite(HEATER_PIN, PID_out_ptr / 2 + 127.50);
+  if (PIDOutPtr != 0.0) analogWrite(HEATER_PIN, PIDOutPtr / 2 + 127.50);
   else analogWrite(HEATER_PIN, 0);
   return 0;
 }
@@ -79,5 +80,17 @@ int8_t Hardware::heater(double temp) {
 int8_t Hardware::cutDown(bool on) {
   if(on) analogWrite(CUTDOWN_PIN, 255);
   else   analogWrite(CUTDOWN_PIN, 0);
+  return 0;
+}
+
+/*
+  function: watchdog
+  ---------------------------------
+  This function pings the watchdog IC in order to prevent a hardware reboot.
+*/
+int8_t Hardware::watchdog() {
+  digitalWrite(WATCHDOG_PIN, HIGH);
+  delay(1);
+  digitalWrite(WATCHDOG_PIN, LOW);
   return 0;
 }

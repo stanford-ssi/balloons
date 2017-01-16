@@ -31,6 +31,7 @@ void Avionics::init() {
   if(RBModule.init()    < 0) logAlert("unable to initialize RockBlock", true);
   if(radioModule.init() < 0) logAlert("unable to initialize radio", true);
   if(canModule.init()   < 0) logAlert("unable to initialize CAN BUS", true);
+  watchdog();
 }
 
 /********************************  FUNCTIONS  *********************************/
@@ -42,6 +43,7 @@ void Avionics::init() {
 void Avionics::updateData() {
   if(readData()    < 0) logAlert("unable to read Data", true);
   if(logData()     < 0) logAlert("unable to log Data", true);
+  watchdog();
 }
 
 /*
@@ -54,6 +56,7 @@ void Avionics::evaluateState() {
   if(debugState()  < 0) logAlert("unable to debug state", true);
   if(runHeaters()  < 0) logAlert("unable to run heaters", true);
   if(runCutdown()  < 0) logAlert("unable to run cutdown", true);
+  watchdog();
 }
 
 /*
@@ -62,9 +65,12 @@ void Avionics::evaluateState() {
  * This function sends the current data frame down.
  */
 void Avionics::sendComms() {
+  if((millis() - data.COMMS_LAST) < COMMS_RATE) return;
   if(sendSATCOMS() < 0) logAlert("unable to communicate over RB", true);
   if(sendAPRS()    < 0) logAlert("unable to communicate over APRS", true);
   if(sendCAN()     < 0) logAlert("unable to communicate over CAN", true);
+  data.COMMS_LAST = millis();
+  watchdog();
 }
 
 /*
@@ -74,6 +80,7 @@ void Avionics::sendComms() {
  */
 void Avionics::sleep() {
   gpsModule.smartDelay(LOOP_RATE);
+  watchdog();
 }
 
 /*********************************  HELPERS  **********************************/
@@ -86,8 +93,10 @@ int8_t Avionics::readData() {
   data.HEARTBEAT_STATE = !data.HEARTBEAT_STATE;
   data.LOOP_RATE       = millis() - data.LOOP_START;
   data.LOOP_START      = millis();
+  data.TIME            = sensors.getTime();
   data.ALTITUDE_LAST   = data.ALTITUDE_BMP;
   data.VOLTAGE         = sensors.getVoltage();
+  data.CURRENT         = sensors.getCurrent();
   data.TEMP_EXT        = sensors.getTempOut();
   data.TEMP_IN         = sensors.getTempIn();
   data.PRESS_BMP       = sensors.getPressure();
@@ -165,28 +174,12 @@ int8_t Avionics::calcState() {
     (data.ALTITUDE_BMP >= CUTDOWN_ALT)
   ) data.SHOULD_CUTDOWN = true;
 
-// /*
-//    function: calcAscentRate
-//    usage: calcAscentRate();
-//    return: ascent rate from last two data points
-//    ---------------------------------
-//    This function calculates the linearized ascent rate from
-//    the last two altitude readings.
-// */
-// static float calcAscentRate(void) {
-//   for (int i = 0; i < AscentRateSize - 1; i++) {
-//     AscentRateBuffer[i] = AscentRateBuffer[i + 1];
-//   }
-//   lastALTCall = currALTCall;
-//   currALTCall = millis();
-//   AscentRateBuffer[AscentRateSize - 1] = (ALTITUDE_BMP - ALTITUDE_LAST) / ((currALTCall - lastALTCall) / 1000.0);
-//   float AscentRateTotal = 0;
-//   for (int i = 0; i < AscentRateSize; i++) {
-//     AscentRateTotal += AscentRateBuffer[i];
-//   }
-//   return AscentRateTotal / AscentRateSize;
-// }
-
+  for (int i = 0; i < BUFFER_SIZE - 1; i++) data.ASCENT_BUFFER[i] = data.ASCENT_BUFFER[i + 1];
+  data.ASCENT_BUFFER[BUFFER_SIZE - 1] = (data.ALTITUDE_BMP - data.ALTITUDE_LAST) / ((millis() - data.ASCENT_RATE_LAST) / 1000.0);
+  data.ASCENT_RATE_LAST = millis();
+  float ascentRateTotal = 0;
+  for (int i = 0; i < BUFFER_SIZE; i++) ascentRateTotal += data.ASCENT_BUFFER[i];
+  data.ASCENT_RATE =  ascentRateTotal / BUFFER_SIZE;
   return 0;
 }
 
@@ -225,8 +218,8 @@ int8_t Avionics::runCutdown() {
     gpsModule.smartDelay(CUTDOWN_TIME);
     PCB.cutDown(false);
     data.CUTDOWN_STATE = true;
+    logAlert("completed cutdown", false);
   }
-  logAlert("completed cutdown", false);
   return 0;
 }
 
@@ -388,4 +381,15 @@ void Avionics::logAlert(const char* debug, bool fatal) {
     Serial.print(debug);
     Serial.print("...\n");
   }
+}
+
+/*
+ * Function: watchdog
+ * -------------------
+ * This function pulses the watchdog IC in order to ensure that avionics recovers from a fatal crash.
+ */
+void Avionics::watchdog() {
+  if((millis() - data.WATCHDOG_LAST) < WATCHDOG_RATE) return;
+  PCB.watchdog();
+  data.WATCHDOG_LAST = millis();
 }
