@@ -18,22 +18,19 @@
  */
 void Avionics::init() {
   Serial.begin(9600);
-  sensors.init();
   PCB.init();
   if(!Serial) PCB.faultLED();
+  Serial.println("Stanford Student Space Initiative Balloons Launch "+ MISSION_NUMBER + '\n' + CSV_DATA_HEADER);
   if(!SD.begin(SD_CS)) PCB.faultLED();
-
-  Serial.println("Stanford Student Space Initiative Balloons Launch "+ MISSION_NUMBER + "\n" + CSV_DATA_HEADER);
   dataFile = SD.open("data.txt", FILE_WRITE);
   if(!dataFile) PCB.faultLED();
-  dataFile.println("Stanford Student Space Initiative Balloons Launch " + MISSION_NUMBER + "\n" + CSV_DATA_HEADER);
+  dataFile.println("Stanford Student Space Initiative Balloons Launch " + MISSION_NUMBER + '\n' + CSV_DATA_HEADER);
   dataFile.close();
-
-  gpsModule.init();
-  RBModule.init();
-  radioModule.init();
-  canModule.init();
-
+  if(sensors.init()     < 0) logAlert("unable to initialize Sensors", true);
+  if(gpsModule.init()   < 0) logAlert("unable to initialize GPS", true);
+  if(RBModule.init()    < 0) logAlert("unable to initialize RockBlock", true);
+  if(radioModule.init() < 0) logAlert("unable to initialize radio", true);
+  if(canModule.init()   < 0) logAlert("unable to initialize CAN BUS", true);
 }
 
 /********************************  FUNCTIONS  *********************************/
@@ -43,8 +40,8 @@ void Avionics::init() {
  * This function handles basic flight data collection.
  */
 void Avionics::updateData() {
-  if(readData()    < 0) logFatalError("unable to read Data");
-  if(logData()     < 0) logFatalError("unable to log Data");
+  if(readData()    < 0) logAlert("unable to read Data", true);
+  if(logData()     < 0) logAlert("unable to log Data", true);
 }
 
 /*
@@ -53,10 +50,10 @@ void Avionics::updateData() {
  * This function intelligently reacts to the current data frame.
  */
 void Avionics::evaluateState() {
-  if(calcState()   < 0) logFatalError("unable to calculate state");
-  if(debugState()  < 0) logFatalError("unable to debug state");
-  if(runHeaters()  < 0) logFatalError("unable to run heaters");
-  if(runCutdown()  < 0) logFatalError("unable to run cutdown");
+  if(calcState()   < 0) logAlert("unable to calculate state", true);
+  if(debugState()  < 0) logAlert("unable to debug state", true);
+  if(runHeaters()  < 0) logAlert("unable to run heaters", true);
+  if(runCutdown()  < 0) logAlert("unable to run cutdown", true);
 }
 
 /*
@@ -65,9 +62,9 @@ void Avionics::evaluateState() {
  * This function sends the current data frame down.
  */
 void Avionics::sendComms() {
-  if(sendSATCOMS() < 0) logFatalError("unable to communicate over SATCOMS");
-  if(sendAPRS()    < 0) logFatalError("unable to communicate over APRS");
-  if(sendCAN()     < 0) logFatalError("unable to communicate over CAN");
+  if(sendSATCOMS() < 0) logAlert("unable to communicate over RB", true);
+  if(sendAPRS()    < 0) logAlert("unable to communicate over APRS", true);
+  if(sendCAN()     < 0) logAlert("unable to communicate over CAN", true);
 }
 
 /*
@@ -111,35 +108,35 @@ int8_t Avionics::logData() {
   dataFile = SD.open("data.txt", FILE_WRITE);
   if(!dataFile) return -1;
   dataFile.print(data.TIME);
-  dataFile.print(",");
+  dataFile.print(',');
   dataFile.print(data.LOOP_RATE);
-  dataFile.print(",");
+  dataFile.print(',');
   dataFile.print(data.VOLTAGE);
-  dataFile.print(",");
+  dataFile.print(',');
   dataFile.print(data.CURRENT);
-  dataFile.print(",");
+  dataFile.print(',');
   dataFile.print(data.ALTITUDE_BMP);
-  dataFile.print(",");
+  dataFile.print(',');
   dataFile.print(data.ASCENT_RATE);
-  dataFile.print(",");
+  dataFile.print(',');
   dataFile.print(data.TEMP_IN);
-  dataFile.print(",");
+  dataFile.print(',');
   dataFile.print(data.TEMP_EXT);
-  dataFile.print(",");
+  dataFile.print(',');
   dataFile.print(String(data.LAT_GPS, 4));
-  dataFile.print(",");
+  dataFile.print(',');
   dataFile.print(String(data.LONG_GPS, 4));
-  dataFile.print(",");
+  dataFile.print(',');
   dataFile.print(data.SPEED_GPS);
-  dataFile.print(",");
+  dataFile.print(',');
   dataFile.print(data.ALTITUDE_GPS);
-  dataFile.print(",");
+  dataFile.print(',');
   dataFile.print(data.PRESS_BMP);
-  dataFile.print(",");
+  dataFile.print(',');
   dataFile.print(data.RB_SENT_COMMS);
-  dataFile.print(",");
+  dataFile.print(',');
   dataFile.print(data.CUTDOWN_STATE);
-  dataFile.print("\n");
+  dataFile.print('\n');
   dataFile.close();
   return 0;
 }
@@ -155,9 +152,41 @@ int8_t Avionics::calcState() {
   data.P_GOOD_STATE    = (data.ALTITUDE_BMP > -50 && data.ALTITUDE_BMP < 200);
   data.T_GOOD_STATE    = (data.TEMP_IN > 15 && data.TEMP_IN < 50);
   data.GPS_GOOD_STATE  = (data.LAT_GPS != 1000.0 && data.LAT_GPS != 0.0 && data.LONG_GPS != 1000.0 && data.LONG_GPS != 0.0);
-  if(data.DEBUG_STATE && (data.ALTITUDE_LAST >= DEBUG_ALT) && (data.ALTITUDE_BMP >= DEBUG_ALT)) {
-    data.DEBUG_STATE = false;
-  }
+
+  if(data.DEBUG_STATE && (data.ALTITUDE_LAST >= DEBUG_ALT) && (data.ALTITUDE_BMP >= DEBUG_ALT)) data.DEBUG_STATE = false;
+
+  if(CUTDOWN_GPS_ENABLE && data.GPS_GOOD_STATE &&
+    ((GPS_FENCE_LAT_MIN < data.LAT_GPS) && (data.LAT_GPS < GPS_FENCE_LAT_MAX)) &&
+    ((GPS_FENCE_LON_MIN < data.LONG_GPS) && (data.LONG_GPS < GPS_FENCE_LON_MAX))
+  ) data.SHOULD_CUTDOWN = true;
+
+  if(CUTDOWN_ALT_ENABLE && !data.CUTDOWN_STATE &&
+    (data.ALTITUDE_LAST >= CUTDOWN_ALT) &&
+    (data.ALTITUDE_BMP >= CUTDOWN_ALT)
+  ) data.SHOULD_CUTDOWN = true;
+
+// /*
+//    function: calcAscentRate
+//    usage: calcAscentRate();
+//    return: ascent rate from last two data points
+//    ---------------------------------
+//    This function calculates the linearized ascent rate from
+//    the last two altitude readings.
+// */
+// static float calcAscentRate(void) {
+//   for (int i = 0; i < AscentRateSize - 1; i++) {
+//     AscentRateBuffer[i] = AscentRateBuffer[i + 1];
+//   }
+//   lastALTCall = currALTCall;
+//   currALTCall = millis();
+//   AscentRateBuffer[AscentRateSize - 1] = (ALTITUDE_BMP - ALTITUDE_LAST) / ((currALTCall - lastALTCall) / 1000.0);
+//   float AscentRateTotal = 0;
+//   for (int i = 0; i < AscentRateSize; i++) {
+//     AscentRateTotal += AscentRateBuffer[i];
+//   }
+//   return AscentRateTotal / AscentRateSize;
+// }
+
   return 0;
 }
 
@@ -174,13 +203,13 @@ int8_t Avionics::debugState() {
   return 0;
 }
 
-
 /*
  * Function: runHeaters
  * -------------------
  * This function thermaly regulates the avionics.
  */
 int8_t Avionics::runHeaters() {
+  PCB.heater(data.TEMP_IN);
   return 0;
 }
 
@@ -190,13 +219,14 @@ int8_t Avionics::runHeaters() {
  * This function cuts down the payload if nessisary.
  */
 int8_t Avionics::runCutdown() {
-  //CUTDOWN_ENABLE
-  // if(!data.CUTDOWN_STATE && (data.ALTITUDE_LAST >= CUTDOWN_ALT) && (data.ALTITUDE_BMP >= CUTDOWN_ALT)) {
+  if(data.CUTDOWN_STATE) return 0;
+  if(data.SHOULD_CUTDOWN) {
     PCB.cutDown(true);
-    // smartDelay(CUTDOWN_TIME);
-    // PCB.cutDown(false);
+    gpsModule.smartDelay(CUTDOWN_TIME);
+    PCB.cutDown(false);
     data.CUTDOWN_STATE = true;
-  // }
+  }
+  logAlert("completed cutdown", false);
   return 0;
 }
 
@@ -210,6 +240,7 @@ int8_t Avionics::sendSATCOMS() {
   String messageToSend = writeState();
   data.RB_SENT_COMMS++;
   RBModule.write(data.COMMS_BUFFER, messageToSend.length());
+  logAlert("sent Rockblock message", false);
   return 0;
 }
 
@@ -221,6 +252,7 @@ int8_t Avionics::sendSATCOMS() {
 int8_t Avionics::sendAPRS() {
   String messageToSend = writeState();
   radioModule.write(data.COMMS_BUFFER, messageToSend.length());
+  logAlert("sent APRS message", false);
   return 0;
 }
 
@@ -233,6 +265,7 @@ int8_t Avionics::sendCAN() {
   data.CAN_GOOD_STATE = false;
   String messageToSend = writeState();
   canModule.write(data.COMMS_BUFFER, messageToSend.length());
+  logAlert("sent CAN message", false);
   return 0;
 }
 
@@ -242,14 +275,14 @@ int8_t Avionics::sendCAN() {
  * This function displays the current avionics state.
  */
 int8_t Avionics::displayState() {
-    PCB.writeLED(BAT_GOOD_LED,  (data.VOLTAGE >= 3.63));
-    PCB.writeLED(I_GOOD_LED,    (data.CURRENT > 0.0 && data.CURRENT <= 0.5));
-    PCB.writeLED(P_GOOD_LED,    (data.ALTITUDE_BMP > -50 && data.ALTITUDE_BMP < 200));
-    PCB.writeLED(T_GOOD_LED,    (data.TEMP_IN > 15 && data.TEMP_IN < 50));
-    PCB.writeLED(CAN_GOOD_LED,  (data.CAN_GOOD_STATE));
-    PCB.writeLED(RB_GOOD_LED,   (data.RB_GOOD_STATE));
-    PCB.writeLED(GPS_GOOD_LED,  (data.LAT_GPS != 1000.0 && data.LAT_GPS != 0.0 && data.LONG_GPS != 1000.0 && data.LONG_GPS != 0.0));
-    PCB.writeLED(HEARTBEAT_LED, (data.HEARTBEAT_STATE));
+    PCB.writeLED(BAT_GOOD_LED,  data.BAT_GOOD_STATE);
+    PCB.writeLED(I_GOOD_LED,    data.I_GOODD_STATE);
+    PCB.writeLED(P_GOOD_LED,    data.P_GOOD_STATE);
+    PCB.writeLED(T_GOOD_LED,    data.T_GOOD_STATE);
+    PCB.writeLED(CAN_GOOD_LED,  data.CAN_GOOD_STATE);
+    PCB.writeLED(RB_GOOD_LED,   data.RB_GOOD_STATE);
+    PCB.writeLED(GPS_GOOD_LED,  data.GPS_GOOD_STATE);
+    PCB.writeLED(HEARTBEAT_LED, data.HEARTBEAT_STATE);
   return 0;
 }
 
@@ -260,35 +293,35 @@ int8_t Avionics::displayState() {
  */
 int8_t Avionics::printState() {
   Serial.print(data.TIME);
-  Serial.print(",");
+  Serial.print(',');
   Serial.print(data.LOOP_RATE);
-  Serial.print(",");
+  Serial.print(',');
   Serial.print(data.VOLTAGE);
-  Serial.print(",");
+  Serial.print(',');
   Serial.print(data.CURRENT);
-  Serial.print(",");
+  Serial.print(',');
   Serial.print(data.ALTITUDE_BMP);
-  Serial.print(",");
+  Serial.print(',');
   Serial.print(data.ASCENT_RATE);
-  Serial.print(",");
+  Serial.print(',');
   Serial.print(data.TEMP_IN);
-  Serial.print(",");
+  Serial.print(',');
   Serial.print(data.TEMP_EXT);
-  Serial.print(",");
+  Serial.print(',');
   Serial.print(String(data.LAT_GPS, 4));
-  Serial.print(",");
+  Serial.print(',');
   Serial.print(String(data.LONG_GPS, 4));
-  Serial.print(",");
+  Serial.print(',');
   Serial.print(data.SPEED_GPS);
-  Serial.print(",");
+  Serial.print(',');
   Serial.print(data.ALTITUDE_GPS);
-  Serial.print(",");
+  Serial.print(',');
   Serial.print(data.PRESS_BMP);
-  Serial.print(",");
+  Serial.print(',');
   Serial.print(data.RB_SENT_COMMS);
-  Serial.print(",");
+  Serial.print(',');
   Serial.print(data.CUTDOWN_STATE);
-  Serial.print("\n");
+  Serial.print('\n');
   return 0;
 }
 
@@ -300,54 +333,58 @@ int8_t Avionics::printState() {
 String Avionics::writeState() {
   String messageToSend = "";
   messageToSend += data.TIME;
-  messageToSend += ",";
+  messageToSend += ',';
   messageToSend += data.LOOP_RATE;
-  messageToSend += ",";
+  messageToSend += ',';
   messageToSend += data.VOLTAGE;
-  messageToSend += ",";
+  messageToSend += ',';
   messageToSend += data.CURRENT;
-  messageToSend += ",";
+  messageToSend += ',';
   messageToSend += data.ALTITUDE_BMP;
-  messageToSend += ",";
+  messageToSend += ',';
   messageToSend += data.ASCENT_RATE;
-  messageToSend += ",";
+  messageToSend += ',';
   messageToSend += data.TEMP_IN;
-  messageToSend += ",";
+  messageToSend += ',';
   messageToSend += data.TEMP_EXT;
-  messageToSend += ",";
+  messageToSend += ',';
   messageToSend += String(data.LAT_GPS, 4);
-  messageToSend += ",";
+  messageToSend += ',';
   messageToSend += String(data.LONG_GPS, 4);
-  messageToSend += ",";
+  messageToSend += ',';
   messageToSend += data.SPEED_GPS;
-  messageToSend += ",";
+  messageToSend += ',';
   messageToSend += data.ALTITUDE_GPS;
-  messageToSend += ",";
+  messageToSend += ',';
   messageToSend += data.PRESS_BMP;
-  messageToSend += ",";
+  messageToSend += ',';
   messageToSend += data.RB_SENT_COMMS;
-  messageToSend += ",";
+  messageToSend += ',';
   messageToSend += data.CUTDOWN_STATE;
-  messageToSend += "\n";
+  messageToSend += '\n';
   return messageToSend;
 }
 
 /*
- * Function: logFatalError
+ * Function: logAlert
  * -------------------
- * This function logs information if there has been a Fatal error.
+ * This function logs important information whenever a specific event occurs
  */
-void Avionics::logFatalError(const char* debug) {
+void Avionics::logAlert(const char* debug, bool fatal) {
   PCB.faultLED();
   dataFile = SD.open("log.txt", FILE_WRITE);
   if(dataFile) {
-    dataFile.print("FATAL ERROR: ");
+    dataFile.print(data.TIME);
+    dataFile.print(',');
+    if(fatal) dataFile.print("FATAL ERROR!!!!!!!!!!: ");
     dataFile.print(debug);
     dataFile.print("...\n");
     dataFile.close();
   }
   if(data.DEBUG_STATE) {
-    Serial.print("FATAL ERROR: ");
+    Serial.print(data.TIME);
+    Serial.print(',');
+    if(fatal) Serial.print("FATAL ERROR!!!!!!!!!!: ");
     Serial.print(debug);
     Serial.print("...\n");
   }

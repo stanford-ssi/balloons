@@ -41,6 +41,7 @@ struct DataFrame {
   bool    HEARTBEAT_STATE    = false;
 
   bool    DEBUG_STATE        =  true;
+  bool    SHOULD_CUTDOWN     = false;
   double  ALTITUDE_LAST      =     0;
   long    LOOP_START         =     0;
   float   Ascent_BUFFER[BUFFER_SIZE];

@@ -16,16 +16,21 @@
   ---------------------------------
   This function initializes the sensor hardware.
 */
-void Sensors::init() {
+int8_t Sensors::init() {
+  int8_t sucess = 0;
   if (!bme1.begin()) {
     Serial.println("Could not find a valid BMP280 sensor, check wiring!");
+    sucess += -1;
   }
   if (!bme2.begin()) {
     Serial.println("Could not find a valid BMP280 sensor, check wiring!");
+    sucess += -2;
   }
   if (! baro.begin()) {
     Serial.println("Could not find a valid MPL3115A2 sensor, check wiring!");
+    sucess += -4;
   }
+  return sucess;
 }
 
 /********************************  FUNCTIONS  *********************************/

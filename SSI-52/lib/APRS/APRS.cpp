@@ -17,7 +17,8 @@
   ---------------------------------
   This function initializes the APRS module.
 */
-void APRS::init() {
+int8_t APRS::init() {
+  return 0;
 }
 
 /********************************  FUNCTIONS  *********************************/
@@ -26,6 +27,6 @@ void APRS::init() {
   ---------------------------------
   This function writes a bitstream across the communication interface.
 */
-uint8_t APRS::write(char* buff, uint8_t len) {
+int8_t APRS::write(char* buff, uint8_t len) {
   return 0;
 }

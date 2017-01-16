@@ -20,6 +20,7 @@ void Hardware::init() {
   mcp.begin();
 
   pinMode(FAULT_LED, OUTPUT);
+  pinMode(HEATER_PIN, OUTPUT);
   pinMode(CUTDOWN_PIN, OUTPUT);
   analogWrite(CUTDOWN_PIN, 0);
 
@@ -33,7 +34,7 @@ void Hardware::init() {
   ---------------------------------
   This function sets a pin to green or red.
 */
-uint8_t Hardware::writeLED(uint8_t PIN, bool green) {
+int8_t Hardware::writeLED(uint8_t PIN, bool green) {
   if (green) {
     mcp.digitalWrite(PIN, HIGH);
     mcp.digitalWrite(15 - PIN, LOW);
@@ -50,7 +51,7 @@ uint8_t Hardware::writeLED(uint8_t PIN, bool green) {
  * -------------------
  * This function alerts the user if there has been a fatal error.
  */
-uint8_t Hardware::faultLED() {
+int8_t Hardware::faultLED() {
   digitalWrite(FAULT_LED, HIGH);
   delay(LOOP_RATE);
   digitalWrite(FAULT_LED, LOW);
@@ -60,9 +61,22 @@ uint8_t Hardware::faultLED() {
 /*
   function: cutDown
   ---------------------------------
+  This function runs the PID heater within the board.
+*/
+int8_t Hardware::heater(double temp) {
+  PID_temp_ptr = temp;
+  pid.Compute();
+  if (PID_out_ptr != 0.0) analogWrite(HEATER_PIN, PID_out_ptr / 2 + 127.50);
+  else analogWrite(HEATER_PIN, 0);
+  return 0;
+}
+
+/*
+  function: cutDown
+  ---------------------------------
   This function triggers the mechanical cutdown of the payload.
 */
-uint8_t Hardware::cutDown(bool on) {
+int8_t Hardware::cutDown(bool on) {
   if(on) analogWrite(CUTDOWN_PIN, 255);
   else   analogWrite(CUTDOWN_PIN, 0);
   return 0;

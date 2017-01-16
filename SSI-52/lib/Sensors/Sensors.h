@@ -25,7 +25,7 @@ public:
     bme2(BMP_CS2),
     thermocouple(THERMOCPL_CS) {
   }
-  void init();
+  int8_t init();
 /********************************  FUNCTIONS  *********************************/
   double getVoltage();
   double getTempOut();
@@ -38,6 +38,12 @@ private:
   Adafruit_BMP280 bme2;
   Adafruit_MAX31855 thermocouple;
   Adafruit_MPL3115A2 baro = Adafruit_MPL3115A2();
+
+  //9dof??
+  //ina219
+  // radio   1000101
+  // cutdown 1000000
+  //heaters  1000001
 };
 
 #endif

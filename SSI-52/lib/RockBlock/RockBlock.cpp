@@ -17,7 +17,8 @@
   ---------------------------------
   This function initializes the RockBlock module.
 */
-void RockBlock::init() {
+int8_t RockBlock::init() {
+  return 0;
 }
 
 /********************************  FUNCTIONS  *********************************/
@@ -26,6 +27,6 @@ void RockBlock::init() {
   ---------------------------------
   This function writes a bitstream across the communication interface.
 */
-uint8_t RockBlock::write(char* buff, uint8_t len) {
+int8_t RockBlock::write(char* buff, uint8_t len) {
   return 0;
 }
