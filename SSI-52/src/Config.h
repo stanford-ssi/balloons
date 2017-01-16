@@ -14,6 +14,21 @@
 #include <Arduino.h>
 #include <stdint.h>
 
+//ina219
+//9dof??
+
+// radio   1000101
+// cutdown 1000000
+//heaters  1000001
+
+//24
+//watchdog
+// rf pwr A3
+// radio sleep a18
+// mic in a14
+
+
+
 /****************************  EDITABLE CONSTANTS  ****************************/
 static const String    MISSION_NUMBER    = "SSI-52";
 static const String    CSV_DATA_HEADER   = "TIME,LOOP_RATE,VOLTAGE,CURRENT,ALTITUDE_BMP,ASCENT_RATE,TEMP_IN,TEMP_EXT,LAT_GPS,LONG_GPS,SPEED_GPS,ALTITUDE_GPS,PRESS_BMP,RB_SENT_COMMS,CUTDOWN_STATE";
