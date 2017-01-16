@@ -23,11 +23,11 @@ public:
   void updateStatusLEDs();
   uint8_t writeLED(uint8_t PIN, bool green);
   uint8_t faultLED();
-  uint8_t cutDown();
+  uint8_t cutDown(bool on);
 private:
 /*********************************  HELPERS  **********************************/
   int8_t readData();
-
+/*********************************  OBJECTS  **********************************/
   Adafruit_MCP23017 mcp;
 };
 

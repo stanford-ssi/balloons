@@ -44,7 +44,8 @@ double Sensors::getVoltage() {
   This function gets the external temperature.
 */
 double Sensors::getTempOut() {
-  if (!isnan(thermocouple.readCelsius())) return -1; //return TEMP_EXT;
+  double temp = thermocouple.readCelsius();
+  if (isnan(temp)) return -1;
   else return thermocouple.readCelsius();
 }
 

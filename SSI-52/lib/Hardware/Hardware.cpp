@@ -20,16 +20,18 @@ void Hardware::init() {
   mcp.begin();
 
   pinMode(FAULT_LED, OUTPUT);
+  pinMode(CUTDOWN_PIN, OUTPUT);
+  analogWrite(CUTDOWN_PIN, 0);
+
   for (uint8_t i = 0; i < 16; i++) mcp.pinMode(i,  OUTPUT);
   for (uint8_t i = 0; i < 8; i++) writeLED(i, false);
 }
 
 /********************************  FUNCTIONS  *********************************/
-
 /*
   function: writeLED
   ---------------------------------
-  This function sets a pin to red or green.
+  This function sets a pin to green or red.
 */
 uint8_t Hardware::writeLED(uint8_t PIN, bool green) {
   if (green) {
@@ -38,7 +40,7 @@ uint8_t Hardware::writeLED(uint8_t PIN, bool green) {
   }
  else {
     mcp.digitalWrite(PIN, LOW);
-    mcp.digitalWrite(15- PIN, HIGH);
+    mcp.digitalWrite(15 - PIN, HIGH);
   }
   return 0;
 }
@@ -60,7 +62,8 @@ uint8_t Hardware::faultLED() {
   ---------------------------------
   This function triggers the mechanical cutdown of the payload.
 */
-uint8_t Hardware::cutDown() {
+uint8_t Hardware::cutDown(bool on) {
+  if(on) analogWrite(CUTDOWN_PIN, 255);
+  else   analogWrite(CUTDOWN_PIN, 0);
   return 0;
 }
-/*********************************  HELPERS  **********************************/

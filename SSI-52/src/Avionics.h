@@ -37,7 +37,7 @@ private:
   int8_t logData();
 
   int8_t calcState();
-  int8_t runDebug();
+  int8_t debugState();
   int8_t runHeaters();
   int8_t runCutdown();
 
@@ -49,12 +49,11 @@ private:
   int8_t printState();
   String writeState();
   void   logFatalError(const char*);
-
+/*********************************  OBJECTS  **********************************/
   DataFrame data;
   File dataFile;
   Hardware PCB;
   Sensors sensors;
-
   GPS gpsModule;
   RockBlock RBModule;
   APRS radioModule;

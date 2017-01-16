@@ -15,7 +15,7 @@
 /*
   function: init
   ---------------------------------
-  This function initializes the CAN bus.
+  This function initializes the RockBlock module.
 */
 void RockBlock::init() {
 }

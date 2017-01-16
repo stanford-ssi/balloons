@@ -27,16 +27,21 @@ struct DataFrame {
   float   LONG_GPS           =     0;
   double  SPEED_GPS          =     0;
   double  ALTITUDE_GPS       =     0;
+  double  PRESS_BMP          =     0;
   int     RB_SENT_COMMS      =     0;
   bool    CUTDOWN_STATE      = false;
 
+  bool    BAT_GOOD_STATE     = false;
+  bool    I_GOODD_STATE      = false;
+  bool    P_GOOD_STATE       = false;
+  bool    T_GOOD_STATE       = false;
+  bool    CAN_GOOD_STATE     = false;
+  bool    RB_GOOD_STATE      = false;
+  bool    GPS_GOOD_STATE     = false;
+  bool    HEARTBEAT_STATE    = false;
+
   bool    DEBUG_STATE        =  true;
-  bool    BLINK              =  true;
-  bool    GPS_SET_SUCESS     = false;
-  bool    RB_SET_SUCESS      = false;
-  bool    CAN_SET_SUCESS     = false;
   double  ALTITUDE_LAST      =     0;
-  double  PRESS_BMP          =     0;
   long    LOOP_START         =     0;
   float   Ascent_BUFFER[BUFFER_SIZE];
   char    COMMS_BUFFER[BUFFER_SIZE];
