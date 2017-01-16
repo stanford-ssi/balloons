@@ -15,13 +15,6 @@
 #include <IridiumSBD.h>
 #include "../../src/Config.h"
 
-/*
-  Global variable specified in Config.h
-  --------------------------
-  static const uint16_t  RB_BAUD            = 19200;
-  static const uint8_t   RB_SLEEP          =     9;
-*/
-
 class RockBlock {
 public:
 /**********************************  SETUP  ***********************************/
