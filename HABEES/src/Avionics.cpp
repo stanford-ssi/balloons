@@ -232,7 +232,7 @@ int8_t Avionics::sendSATCOMS() {
   data.RB_GOOD_STATE  = false;
   String messageToSend = writeState();
   data.RB_SENT_COMMS++;
-  RBModule.write(data.COMMS_BUFFER, messageToSend.length());
+  RBModule.writeRead(data.COMMS_BUFFER, messageToSend.length());
   logAlert("sent Rockblock message", false);
   return 0;
 }
