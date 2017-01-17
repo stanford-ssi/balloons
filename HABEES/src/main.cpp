@@ -11,8 +11,9 @@
 #include "Avionics.h"
 
 /***********************************  BOOT  ***********************************/
+bool inSetup = false;
+Avionics flightController;
 int main(void) {
-  Avionics flightController;
   flightController.init();
 /***********************************  MAIN  ***********************************/
   while(true) {
@@ -21,4 +22,13 @@ int main(void) {
     flightController.sendComms();
     flightController.sleep();
   }
+}
+/*********************************  CALLBACK  *********************************/
+bool ISBDCallback() {
+  if (!inSetup) {
+    flightController.updateData();
+    flightController.evaluateState();
+    flightController.sleep();
+  }
+  return true;
 }

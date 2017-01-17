@@ -32,27 +32,23 @@ int8_t RockBLOCK::init() {
 
 /********************************  FUNCTIONS  *********************************/
 /*
-  function: read
-  ---------------------------------
-  This function reads a bitstream across the communication interface.
-*/
-void read(uint8_t rxBuffer[]) {
-  size_t bufferSize = sizeof(rxBuffer);
-  char fullMessage[200] = {0};
-  for (uint8_t i = 0; i < bufferSize; i++) {
-    fullMessage[i] = rxBuffer[i];
-  }
-}
-
-/*
   function: writeRead
   ---------------------------------
   This function writes and reads a bitstream across the communication interface.
 */
+
+/*
+ * TODO:
+ * pass buffer by addrs
+ * return message by addrs and len
+*/
 int8_t RockBLOCK::writeRead(char* buff, uint8_t len) {
   String messageToSend = "HELLO WORLD!";
-  size_t bufferSize = 0;
-  uint8_t rxBuffer[200] = {0};
+  size_t  messageLen = messageToSend.length();
+
+  size_t  bufferSize = 0;
+  uint8_t rxBuffer[BUFFER_SIZE] = {0};
+  uint8_t commands[BUFFER_SIZE] = {0};
 
   delay(200);
   Serial.println("Beginning to talk to the RockBLOCK...");
@@ -64,24 +60,14 @@ int8_t RockBLOCK::writeRead(char* buff, uint8_t len) {
   }
 
   Serial.println("SENDING FORREAL");
-  int ret = isbd.sendReceiveSBDBinary(rxBuffer, messageToSend.length(), rxBuffer, bufferSize);
-  if (ret == ISBD_SUCCESS) Serial.println("ISBD_SUCCESS");
-  Serial.println("Not going to sleep mode, buddy.");
-  delay(2000);
-  Serial.println("Reading command buffer");
-  read(rxBuffer);
+  isbd.sendReceiveSBDBinary(rxBuffer, messageLen, rxBuffer, bufferSize);
+  Serial.println("Not going to sleep mode.");
+  if (bufferSize > 0) {
+    for (size_t i = 0; i < bufferSize; i++) {
+      commands[i] = rxBuffer[i];
+    }
+  }
   return 0;
 }
 
-/*
-   function: ISBDCallback
-   ---------------------------------
-   This callback function is run whenever the a RockBLOCK function is being called.
-*/
-bool ISBDCallback() {
-  bool inSetup = false;
-  if (!inSetup) {
-    //HOW DO I CALL BACK FROM ANOTHER CLASS SOS
-  }
-  return true;
-}
+/*********************************  HELPERS  **********************************/
