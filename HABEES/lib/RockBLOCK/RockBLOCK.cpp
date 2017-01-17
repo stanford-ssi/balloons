@@ -9,7 +9,7 @@
   Implimentation of RockBlock.h
 */
 
-#include "RockBlock.h"
+#include "RockBLOCK.h"
 
 IridiumSBD isbd(Serial3, RB_SLEEP);
 
@@ -19,11 +19,12 @@ IridiumSBD isbd(Serial3, RB_SLEEP);
   ---------------------------------
   This function initializes the RockBlock module.
 */
-int8_t RockBlock::init() {
+int8_t RockBLOCK::init() {
   isbd.attachConsole(Serial);
   isbd.attachDiags(Serial);
   isbd.setPowerProfile(1);
   Serial3.begin(RB_BAUD);
+  delay(5000);
   // isbd.begin();
   return 0;
 }
@@ -34,9 +35,42 @@ int8_t RockBlock::init() {
   ---------------------------------
   This function writes a bitstream across the communication interface.
 */
-int8_t RockBlock::write(char* buff, uint8_t len) {
+int8_t RockBLOCK::write(char* buff, uint8_t len) {
   return 0;
 }
+
+/*
+   function: satelliteTransmission
+   usage: satelliteTransmission();
+   ---------------------------------
+   This function sends messages through the Rock Block.
+*/
+int     messagesSent  = 0;
+size_t bufferSize           = 0;
+void satelliteTransmission(){
+  Serial.println("Beginning to talk to the RockBLOCK...");
+  messagesSent += 1;
+  Serial.println("Transmitting message: ");
+  Serial.println((String)messagesSent);
+  Serial.println("Beginning to talk to the RockBLOCK...");
+  Serial.println("Sending RB message");
+  char outBuffer[200];
+  String messageToSend = "HELLO WORLD";
+  messageToSend += '!';
+
+  for(uint8_t i = 0; i < messageToSend.length(); i++) {
+    outBuffer[i] = messageToSend[i];
+  }
+  uint8_t rxBuffer[200] = {0};
+  for(uint8_t i = 0; i < messageToSend.length(); i++){
+    rxBuffer[i] = outBuffer[i];
+  }
+  bufferSize = sizeof(rxBuffer);
+  isbd.sendReceiveSBDBinary(rxBuffer, messageToSend.length(), rxBuffer, bufferSize);
+  Serial.println("Going to sleep mode");
+  delay(2000);
+}
+
 
 // void checkRB() {
 //   if ((powerStates[0] == 0 || powerStates[0] == 1 || powerStates[0] == 3) && (minutes >= RBRestartTimer)) {

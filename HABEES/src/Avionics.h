@@ -17,7 +17,7 @@
 #include <Sensors.h>
 #include <Hardware.h>
 #include <GPS.h>
-#include <RockBlock.h>
+#include <RockBLOCK.h>
 #include <APRS.h>
 #include <CAN.h>
 
@@ -56,7 +56,7 @@ private:
   Hardware PCB;
   Sensors sensors;
   GPS gpsModule;
-  RockBlock RBModule;
+  RockBLOCK RBModule;
   APRS radioModule;
   CAN canModule;
 };

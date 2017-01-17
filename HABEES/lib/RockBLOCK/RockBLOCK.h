@@ -15,7 +15,7 @@
 #include <IridiumSBD.h>
 #include "../../src/Config.h"
 
-class RockBlock {
+class RockBLOCK {
 public:
 /**********************************  SETUP  ***********************************/
   int8_t init();
