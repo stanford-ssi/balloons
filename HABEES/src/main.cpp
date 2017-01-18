@@ -11,10 +11,11 @@
 #include "Avionics.h"
 
 /***********************************  BOOT  ***********************************/
-bool inSetup = false;
+bool inSetup = true;
 Avionics flightController;
 int main(void) {
   flightController.init();
+  inSetup = false;
 /***********************************  MAIN  ***********************************/
   while(true) {
     flightController.updateData();
