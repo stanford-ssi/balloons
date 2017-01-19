@@ -17,6 +17,7 @@
 /****************************  EDITABLE CONSTANTS  ****************************/
 static const String    MISSION_NUMBER     = "SSI-52";
 static const String    CSV_DATA_HEADER    = "TIME,LOOP_RATE,VOLTAGE,CURRENT,ALTITUDE_BMP,ASCENT_RATE,TEMP_IN,TEMP_EXT,LAT_GPS,LONG_GPS,SPEED_GPS,ALTITUDE_GPS,PRESS_BMP,RB_SENT_COMMS,CUTDOWN_STATE";
+static const String    CUTDOWN_COMAND     = "I QUIT";
 static const uint16_t  GPS_BAUD           =  9600;
 static const uint16_t  RB_BAUD            = 19200;
 static const bool      CUTDOWN_ALT_ENABLE =  true;

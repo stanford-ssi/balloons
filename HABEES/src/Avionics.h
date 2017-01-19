@@ -30,6 +30,7 @@ public:
   void evaluateState();
   void sendComms();
   void sleep();
+  bool finishedSetup();
 
 private:
 /*********************************  HELPERS  **********************************/

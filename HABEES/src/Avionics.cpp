@@ -32,6 +32,7 @@ void Avionics::init() {
   if(radioModule.init() < 0) logAlert("unable to initialize radio", true);
   if(canModule.init()   < 0) logAlert("unable to initialize CAN BUS", true);
   watchdog();
+  data.SETUP_STATE = false;
 }
 
 /********************************  FUNCTIONS  *********************************/
@@ -81,6 +82,15 @@ void Avionics::sendComms() {
 void Avionics::sleep() {
   gpsModule.smartDelay(LOOP_RATE);
   watchdog();
+}
+
+/*
+ * Function: finishedSetup
+ * -------------------
+ * This function returns true if the avionics has completed setup.
+ */
+bool Avionics::finishedSetup() {
+  return !data.SETUP_STATE;
 }
 
 /*********************************  HELPERS  **********************************/
@@ -157,7 +167,7 @@ int8_t Avionics::logData() {
  */
 int8_t Avionics::calcState() {
   data.BAT_GOOD_STATE  = (data.VOLTAGE >= 3.63);
-  data.I_GOODD_STATE   = (data.CURRENT > 0.0 && data.CURRENT <= 0.5);
+  data.I_GOOD_STATE   = (data.CURRENT > 0.0 && data.CURRENT <= 0.5);
   data.P_GOOD_STATE    = (data.ALTITUDE_BMP > -50 && data.ALTITUDE_BMP < 200);
   data.T_GOOD_STATE    = (data.TEMP_IN > 15 && data.TEMP_IN < 50);
   data.GPS_GOOD_STATE  = (data.LAT_GPS != 1000.0 && data.LAT_GPS != 0.0 && data.LONG_GPS != 1000.0 && data.LONG_GPS != 0.0);
@@ -269,7 +279,7 @@ int8_t Avionics::sendCAN() {
  */
 int8_t Avionics::displayState() {
     PCB.writeLED(BAT_GOOD_LED,  data.BAT_GOOD_STATE);
-    PCB.writeLED(I_GOOD_LED,    data.I_GOODD_STATE);
+    PCB.writeLED(I_GOOD_LED,    data.I_GOOD_STATE);
     PCB.writeLED(P_GOOD_LED,    data.P_GOOD_STATE);
     PCB.writeLED(T_GOOD_LED,    data.T_GOOD_STATE);
     PCB.writeLED(CAN_GOOD_LED,  data.CAN_GOOD_STATE);

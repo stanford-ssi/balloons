@@ -32,7 +32,7 @@ struct DataFrame {
   bool         CUTDOWN_STATE      = false;
 
   bool         BAT_GOOD_STATE     = false;
-  bool         I_GOODD_STATE      = false;
+  bool         I_GOOD_STATE       = false;
   bool         P_GOOD_STATE       = false;
   bool         T_GOOD_STATE       = false;
   bool         CAN_GOOD_STATE     = false;
@@ -40,6 +40,7 @@ struct DataFrame {
   bool         GPS_GOOD_STATE     = false;
   bool         HEARTBEAT_STATE    = false;
 
+  bool         SETUP_STATE        =  true;
   bool         DEBUG_STATE        =  true;
   bool         SHOULD_CUTDOWN     = false;
   double       ALTITUDE_LAST      =     0;
