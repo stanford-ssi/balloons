@@ -23,19 +23,19 @@ int8_t Sensors::init() {
   setSyncProvider(getTeensy3Time);
   if (timeStatus()!= timeSet) {
     Serial.println("Unable to sync with the RTC");
-    sucess += -8;
+    sucess += -1;
   }
   if (!bme1.begin()) {
     Serial.println("Could not find a valid BMP280 sensor, check wiring!");
-    sucess += -1;
+    sucess += 2;
   }
   if (!bme2.begin()) {
     Serial.println("Could not find a valid BMP280 sensor, check wiring!");
-    sucess += -2;
+    sucess += -4;
   }
   if (! baro.begin()) {
     Serial.println("Could not find a valid MPL3115A2 sensor, check wiring!");
-    sucess += -4;
+    sucess += -8;
   }
   inaHeater.begin(0x41);
   inaCutdown.begin(0x40);

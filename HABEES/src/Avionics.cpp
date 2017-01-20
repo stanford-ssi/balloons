@@ -20,15 +20,25 @@ void Avionics::init() {
   Serial.begin(9600);
   PCB.init();
   if(!Serial) PCB.faultLED();
-  Serial.println("Stanford Student Space Initiative Balloons Launch "+ MISSION_NUMBER + '\n' + CSV_DATA_HEADER);
+  Serial.print("Stanford Student Space Initiative Balloons Launch ");
+  Serial.print(MISSION_NUMBER);
+  Serial.print('\n');
+  Serial.print(CSV_DATA_HEADER);
+  Serial.print('\n');
+
   if(!SD.begin(SD_CS)) PCB.faultLED();
   dataFile = SD.open("data.txt", FILE_WRITE);
   if(!dataFile) PCB.faultLED();
-  dataFile.println("Stanford Student Space Initiative Balloons Launch " + MISSION_NUMBER + '\n' + CSV_DATA_HEADER);
+  dataFile.print("Stanford Student Space Initiative Balloons Launch ");
+  dataFile.print(MISSION_NUMBER);
+  dataFile.print('\n');
+  dataFile.print(CSV_DATA_HEADER);
+  dataFile.print('\n');
+
   dataFile.close();
   if(sensors.init()     < 0) logAlert("unable to initialize Sensors", true);
   if(gpsModule.init()   < 0) logAlert("unable to initialize GPS", true);
-  if(RBModule.init()    < 0) logAlert("unable to initialize RockBlock", true);
+  // if(RBModule.init()    < 0) logAlert("unable to initialize RockBlock", true);
   if(radioModule.init() < 0) logAlert("unable to initialize radio", true);
   if(canModule.init()   < 0) logAlert("unable to initialize CAN BUS", true);
   watchdog();
@@ -67,6 +77,7 @@ void Avionics::evaluateState() {
  */
 void Avionics::sendComms() {
   if((millis() - data.COMMS_LAST) < COMMS_RATE) return;
+  if(writeState()  < 0) logAlert("unable to write to COMMS buffer", true);
   if(sendSATCOMS() < 0) logAlert("unable to communicate over RB", true);
   if(sendAPRS()    < 0) logAlert("unable to communicate over APRS", true);
   if(sendCAN()     < 0) logAlert("unable to communicate over CAN", true);
@@ -100,7 +111,7 @@ bool Avionics::finishedSetup() {
  * This function updates the current data frame.
  */
 int8_t Avionics::readData() {
-  data.HEARTBEAT_STATE = !data.HEARTBEAT_STATE;
+  data.LOOP_GOOD_STATE = !data.LOOP_GOOD_STATE;
   data.LOOP_RATE       = millis() - data.LOOP_START;
   data.LOOP_START      = millis();
   data.TIME            = sensors.getTime();
@@ -142,9 +153,9 @@ int8_t Avionics::logData() {
   dataFile.print(',');
   dataFile.print(data.TEMP_EXT);
   dataFile.print(',');
-  dataFile.print(String(data.LAT_GPS, 4));
+  dataFile.print(data.LAT_GPS, 4);
   dataFile.print(',');
-  dataFile.print(String(data.LONG_GPS, 4));
+  dataFile.print(data.LONG_GPS, 4);
   dataFile.print(',');
   dataFile.print(data.SPEED_GPS);
   dataFile.print(',');
@@ -239,11 +250,12 @@ int8_t Avionics::runCutdown() {
  * This function sends the current data frame over the ROCKBLOCK IO.
  */
 int8_t Avionics::sendSATCOMS() {
+logAlert("sending Rockblock message", false);
   data.RB_GOOD_STATE  = false;
-  String messageToSend = writeState();
   data.RB_SENT_COMMS++;
-  RBModule.writeRead(data.COMMS_BUFFER, messageToSend.length());
-  logAlert("sent Rockblock message", false);
+  int8_t ret = RBModule.writeRead(data.COMMS_BUFFER, data.COMMS_LENGTH);
+  if(ret < 0) return -1;
+  if(ret > 0) parseCommand(ret);
   return 0;
 }
 
@@ -253,8 +265,7 @@ int8_t Avionics::sendSATCOMS() {
  * This function sends the current data frame over the APRS RF IO.
  */
 int8_t Avionics::sendAPRS() {
-  String messageToSend = writeState();
-  radioModule.write(data.COMMS_BUFFER, messageToSend.length());
+  radioModule.write(data.COMMS_BUFFER, data.COMMS_LENGTH);
   logAlert("sent APRS message", false);
   return 0;
 }
@@ -266,8 +277,7 @@ int8_t Avionics::sendAPRS() {
  */
 int8_t Avionics::sendCAN() {
   data.CAN_GOOD_STATE = false;
-  String messageToSend = writeState();
-  canModule.write(data.COMMS_BUFFER, messageToSend.length());
+  canModule.write(data.COMMS_BUFFER, data.COMMS_LENGTH);
   logAlert("sent CAN message", false);
   return 0;
 }
@@ -285,7 +295,7 @@ int8_t Avionics::displayState() {
     PCB.writeLED(CAN_GOOD_LED,  data.CAN_GOOD_STATE);
     PCB.writeLED(RB_GOOD_LED,   data.RB_GOOD_STATE);
     PCB.writeLED(GPS_GOOD_LED,  data.GPS_GOOD_STATE);
-    PCB.writeLED(HEARTBEAT_LED, data.HEARTBEAT_STATE);
+    PCB.writeLED(LOOP_GOOD_LED, data.LOOP_GOOD_STATE);
   return 0;
 }
 
@@ -311,9 +321,9 @@ int8_t Avionics::printState() {
   Serial.print(',');
   Serial.print(data.TEMP_EXT);
   Serial.print(',');
-  Serial.print(String(data.LAT_GPS, 4));
+  Serial.print(data.LAT_GPS, 4);
   Serial.print(',');
-  Serial.print(String(data.LONG_GPS, 4));
+  Serial.print(data.LONG_GPS, 4);
   Serial.print(',');
   Serial.print(data.SPEED_GPS);
   Serial.print(',');
@@ -333,39 +343,16 @@ int8_t Avionics::printState() {
  * -------------------
  * This function compresses the data frame into a bit stream.
  */
-String Avionics::writeState() {
-  String messageToSend = "";
-  messageToSend += data.TIME;
-  messageToSend += ',';
-  messageToSend += data.LOOP_RATE;
-  messageToSend += ',';
-  messageToSend += data.VOLTAGE;
-  messageToSend += ',';
-  messageToSend += data.CURRENT;
-  messageToSend += ',';
-  messageToSend += data.ALTITUDE_BMP;
-  messageToSend += ',';
-  messageToSend += data.ASCENT_RATE;
-  messageToSend += ',';
-  messageToSend += data.TEMP_IN;
-  messageToSend += ',';
-  messageToSend += data.TEMP_EXT;
-  messageToSend += ',';
-  messageToSend += String(data.LAT_GPS, 4);
-  messageToSend += ',';
-  messageToSend += String(data.LONG_GPS, 4);
-  messageToSend += ',';
-  messageToSend += data.SPEED_GPS;
-  messageToSend += ',';
-  messageToSend += data.ALTITUDE_GPS;
-  messageToSend += ',';
-  messageToSend += data.PRESS_BMP;
-  messageToSend += ',';
-  messageToSend += data.RB_SENT_COMMS;
-  messageToSend += ',';
-  messageToSend += data.CUTDOWN_STATE;
-  messageToSend += '\n';
-  return messageToSend;
+int16_t Avionics::writeState() {
+  int16_t length = 0;
+  for(uint16_t i = 0; i < BUFFER_SIZE; i++) {
+    data.COMMS_BUFFER[0] = '!';
+    length++;
+  }
+  // double num = 123412341234.123456789;
+  // char output[50];
+  // snprintf(output, 50, "%.2f", num);
+  return length;
 }
 
 /*
@@ -390,6 +377,17 @@ void Avionics::logAlert(const char* debug, bool fatal) {
     if(fatal) Serial.print("FATAL ERROR!!!!!!!!!!: ");
     Serial.print(debug);
     Serial.print("...\n");
+  }
+}
+
+/*
+ * Function: parseCommand
+ * -------------------
+ * This function parses the command received from the RockBLOCK.
+ */
+void Avionics::parseCommand(int8_t len) {
+  if(strncmp(data.COMMS_BUFFER, CUTDOWN_COMAND, len)) {
+    data.SHOULD_CUTDOWN = true;
   }
 }
 

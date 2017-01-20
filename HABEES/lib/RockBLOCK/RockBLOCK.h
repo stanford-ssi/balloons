@@ -18,13 +18,13 @@
 class RockBLOCK {
 public:
 /**********************************  SETUP  ***********************************/
+  RockBLOCK() : isbd(Serial3, RB_SLEEP){}
   int8_t init();
 /********************************  FUNCTIONS  *********************************/
   int8_t writeRead(char* buff, uint8_t len);
 private:
-/*********************************  HELPERS  **********************************/
-  void read(uint8_t rxBuffer[], size_t len);
-  void write(uint8_t rxBuffer[], size_t len);
+/*********************************  OBJECTS  **********************************/
+  IridiumSBD isbd;
 };
 
 #endif

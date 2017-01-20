@@ -24,33 +24,34 @@
 class Avionics {
 public:
 /**********************************  SETUP  ***********************************/
-  void init();
+  void    init();
 /********************************  FUNCTIONS  *********************************/
-  void updateData();
-  void evaluateState();
-  void sendComms();
-  void sleep();
-  bool finishedSetup();
+  void    updateData();
+  void    evaluateState();
+  void    sendComms();
+  void    sleep();
+  bool    finishedSetup();
 
 private:
 /*********************************  HELPERS  **********************************/
-  int8_t readData();
-  int8_t logData();
+  int8_t  readData();
+  int8_t  logData();
 
-  int8_t calcState();
-  int8_t debugState();
-  int8_t runHeaters();
-  int8_t runCutdown();
+  int8_t  calcState();
+  int8_t  debugState();
+  int8_t  runHeaters();
+  int8_t  runCutdown();
 
-  int8_t sendSATCOMS();
-  int8_t sendAPRS();
-  int8_t sendCAN();
+  int8_t  sendSATCOMS();
+  int8_t  sendAPRS();
+  int8_t  sendCAN();
 
-  int8_t displayState();
-  int8_t printState();
-  String writeState();
-  void   logAlert(const char*, bool fatal);
-  void   watchdog();
+  int8_t  displayState();
+  int8_t  printState();
+  int16_t writeState();
+  void    logAlert(const char*, bool fatal);
+  void    parseCommand(int8_t len);
+  void    watchdog();
 /*********************************  OBJECTS  **********************************/
   DataFrame data;
   File dataFile;

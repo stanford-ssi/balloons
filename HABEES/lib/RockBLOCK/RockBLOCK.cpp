@@ -11,8 +11,6 @@
 
 #include "RockBLOCK.h"
 
-IridiumSBD isbd(Serial3, RB_SLEEP);
-
 /**********************************  SETUP  ***********************************/
 /*
   function: init
@@ -24,9 +22,8 @@ int8_t RockBLOCK::init() {
   isbd.attachDiags(Serial);
   isbd.setPowerProfile(1);
   Serial3.begin(RB_BAUD);
-
   delay(5000);
-  // isbd.begin();
+  isbd.begin();
   return 0;
 }
 
@@ -34,40 +31,18 @@ int8_t RockBLOCK::init() {
 /*
   function: writeRead
   ---------------------------------
-  This function writes and reads a bitstream across the communication interface.
-*/
-
-/*
- * TODO:
- * pass buffer by addrs
- * return message by addrs and len
+  This function writes a bitstream across the communication interface.
+  It returns the length of a read message.
 */
 int8_t RockBLOCK::writeRead(char* buff, uint8_t len) {
-  String messageToSend = "HELLO WORLD!";
-  size_t  messageLen = messageToSend.length();
-
-  size_t  bufferSize = 0;
   uint8_t rxBuffer[BUFFER_SIZE] = {0};
-  uint8_t commands[BUFFER_SIZE] = {0};
-
-  delay(200);
+  size_t  bufferSize = sizeof(rxBuffer);
+  for(size_t i = 0; i < len; i++) rxBuffer[i] = buff[i];
   Serial.println("Beginning to talk to the RockBLOCK...");
+  delay(200);
   Serial.println("Sending RB message");
-
-  bufferSize = sizeof(rxBuffer);
-  for(uint8_t i = 0; i < messageToSend.length(); i++){
-    rxBuffer[i] = messageToSend[i];
-  }
-
-  Serial.println("SENDING FORREAL");
-  isbd.sendReceiveSBDBinary(rxBuffer, messageLen, rxBuffer, bufferSize);
+  if(isbd.sendReceiveSBDBinary(rxBuffer, len, rxBuffer, bufferSize) != ISBD_SUCCESS) return -1;
   Serial.println("Not going to sleep mode.");
-  if (bufferSize > 0) {
-    for (size_t i = 0; i < bufferSize; i++) {
-      commands[i] = rxBuffer[i];
-    }
-  }
-  return 0;
+  for(size_t i = 0; i < bufferSize; i++) buff[i] = rxBuffer[i];
+  return bufferSize;
 }
-
-/*********************************  HELPERS  **********************************/

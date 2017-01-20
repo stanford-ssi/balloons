@@ -16,7 +16,8 @@
 /**********************************  data  ************************************/
 struct DataFrame {
   const char*  TIME               =    "##:##:## ## ## ####";
-  long         LOOP_RATE          =     0;
+  char         time[20]           =    "##:##:## ## ## ####";
+  uint16_t     LOOP_RATE          =     0;
   double       VOLTAGE            =     0;
   double       CURRENT            =     0;
   double       ALTITUDE_BMP       =     0;
@@ -28,7 +29,7 @@ struct DataFrame {
   double       SPEED_GPS          =     0;
   double       ALTITUDE_GPS       =     0;
   double       PRESS_BMP          =     0;
-  int          RB_SENT_COMMS      =     0;
+  uint16_t     RB_SENT_COMMS      =     0;
   bool         CUTDOWN_STATE      = false;
 
   bool         BAT_GOOD_STATE     = false;
@@ -38,16 +39,17 @@ struct DataFrame {
   bool         CAN_GOOD_STATE     = false;
   bool         RB_GOOD_STATE      = false;
   bool         GPS_GOOD_STATE     = false;
-  bool         HEARTBEAT_STATE    = false;
+  bool         LOOP_GOOD_STATE    = false;
 
   bool         SETUP_STATE        =  true;
   bool         DEBUG_STATE        =  true;
   bool         SHOULD_CUTDOWN     = false;
   double       ALTITUDE_LAST      =     0;
-  long         ASCENT_RATE_LAST   =     0;
-  long         COMMS_LAST         =     0;
-  long         WATCHDOG_LAST      =     0;
-  long         LOOP_START         =     0;
+  uint16_t     ASCENT_RATE_LAST   =     0;
+  uint16_t     COMMS_LAST         =     0;
+  uint16_t     WATCHDOG_LAST      =     0;
+  uint16_t     LOOP_START         =     0;
+  uint16_t     COMMS_LENGTH       =     0;
   float        ASCENT_BUFFER[BUFFER_SIZE];
   char         COMMS_BUFFER[BUFFER_SIZE];
 } ;
