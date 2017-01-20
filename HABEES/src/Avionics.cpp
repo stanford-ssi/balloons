@@ -255,6 +255,7 @@ logAlert("sending Rockblock message", false);
   data.RB_SENT_COMMS++;
   int8_t ret = RBModule.writeRead(data.COMMS_BUFFER, data.COMMS_LENGTH);
   if(ret < 0) return -1;
+  data.RB_GOOD_STATE  = true;
   if(ret > 0) parseCommand(ret);
   return 0;
 }

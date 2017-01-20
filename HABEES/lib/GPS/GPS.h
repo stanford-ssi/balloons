@@ -24,12 +24,12 @@ public:
   float  getLongitude();
   float  getAltitude();
   float  getSpeed();
-  void   smartDelay(unsigned long ms);
+  void   smartDelay(uint64_t ms);
 private:
 /*********************************  HELPERS  **********************************/
   void   setFlightMode();
-  void   sendUBX(uint8_t *MSG, uint8_t len);
-  bool   getUBX_ACK(uint8_t *MSG);
+  void   sendUBX(uint8_t* MSG, uint8_t len);
+  bool   getUBX_ACK(uint8_t* MSG);
 /*********************************  OBJECTS  **********************************/
   TinyGPSPlus tinygps;
 };
