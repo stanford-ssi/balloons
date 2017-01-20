@@ -18,13 +18,11 @@
 */
 void Hardware::init() {
   mcp.begin();
-
   pinMode(WATCHDOG_PIN, OUTPUT);
   pinMode(FAULT_PIN, OUTPUT);
   pinMode(HEATER_PIN, OUTPUT);
   pinMode(CUTDOWN_PIN, OUTPUT);
   analogWrite(CUTDOWN_PIN, 0);
-
   for (uint8_t i = 0; i < 16; i++) mcp.pinMode(i,  OUTPUT);
   for (uint8_t i = 0; i < 8; i++) writeLED(i, false);
 }
@@ -35,7 +33,7 @@ void Hardware::init() {
   ---------------------------------
   This function sets a pin to green or red.
 */
-int8_t Hardware::writeLED(uint8_t PIN, bool green) {
+void Hardware::writeLED(uint8_t PIN, bool green) {
   if (green) {
     mcp.digitalWrite(PIN, HIGH);
     mcp.digitalWrite(15 - PIN, LOW);
@@ -44,7 +42,6 @@ int8_t Hardware::writeLED(uint8_t PIN, bool green) {
     mcp.digitalWrite(PIN, LOW);
     mcp.digitalWrite(15 - PIN, HIGH);
   }
-  return 0;
 }
 
 /*
@@ -52,11 +49,10 @@ int8_t Hardware::writeLED(uint8_t PIN, bool green) {
  * -------------------
  * This function alerts the user if there has been a fatal error.
  */
-int8_t Hardware::faultLED() {
+void Hardware::faultLED() {
   digitalWrite(FAULT_PIN, HIGH);
   delay(LOOP_RATE);
   digitalWrite(FAULT_PIN, LOW);
-  return 0;
 }
 
 /*
@@ -64,12 +60,11 @@ int8_t Hardware::faultLED() {
   ---------------------------------
   This function runs the PID heater within the board.
 */
-int8_t Hardware::heater(double temp) {
-  PIDTempPtr = temp;
+void Hardware::heater(double temp) {
+  PIDTempVar = temp;
   pid.Compute();
-  if (PIDOutPtr != 0.0) analogWrite(HEATER_PIN, PIDOutPtr / 2 + 127.50);
+  if (PIDOutVar != 0.0) analogWrite(HEATER_PIN, PIDOutVar / 2 + 127.50);
   else analogWrite(HEATER_PIN, 0);
-  return 0;
 }
 
 /*
@@ -77,10 +72,9 @@ int8_t Hardware::heater(double temp) {
   ---------------------------------
   This function triggers the mechanical cutdown of the payload.
 */
-int8_t Hardware::cutDown(bool on) {
+void Hardware::cutDown(bool on) {
   if(on) analogWrite(CUTDOWN_PIN, 255);
   else   analogWrite(CUTDOWN_PIN, 0);
-  return 0;
 }
 
 /*
@@ -88,9 +82,8 @@ int8_t Hardware::cutDown(bool on) {
   ---------------------------------
   This function pings the watchdog IC in order to prevent a hardware reboot.
 */
-int8_t Hardware::watchdog() {
+void Hardware::watchdog() {
   digitalWrite(WATCHDOG_PIN, HIGH);
   delay(1);
   digitalWrite(WATCHDOG_PIN, LOW);
-  return 0;
 }

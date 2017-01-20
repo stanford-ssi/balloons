@@ -38,9 +38,10 @@ public:
   double      getAltitude();
 private:
 /*********************************  HELPERS  **********************************/
-void          convertDigits(uint8_t start, uint8_t digits);
-void          convertYear(uint8_t start, int year);
+  void        convertDigits(uint8_t start, uint8_t digits);
+  void        convertYear(uint8_t start, int year);
 /*********************************  OBJECTS  **********************************/
+  char buf[20] = {'\0'};
   Adafruit_BMP280 bme1;
   Adafruit_BMP280 bme2;
   Adafruit_MPL3115A2 baro = Adafruit_MPL3115A2();

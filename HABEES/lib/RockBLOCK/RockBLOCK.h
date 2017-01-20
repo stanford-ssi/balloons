@@ -27,8 +27,8 @@ private:
   void    write(char* buff, uint16_t len);
   void    read(char* buff, uint16_t len);
 /*********************************  OBJECTS  **********************************/
-  IridiumSBD isbd;
   uint8_t rxBuffer[BUFFER_SIZE] = {0};
+  IridiumSBD isbd;
 };
 
 #endif

@@ -18,26 +18,21 @@
 class Hardware {
 public:
 /**********************************  SETUP  ***********************************/
-  Hardware() :
-  pid(&PIDTempPtr, &PIDOutPtr, &PIDSetPtr, 2, 5, 1, DIRECT) {}
+  Hardware() : pid(&PIDTempVar, &PIDOutVar, &PIDSetVar, 2, 5, 1, DIRECT) {}
   void init();
 /********************************  FUNCTIONS  *********************************/
-  void   logToSDCard();
-  void   updateStatusLEDs();
-  int8_t writeLED(uint8_t PIN, bool green);
-  int8_t faultLED();
-  int8_t heater(double temp);
-  int8_t cutDown(bool on);
-  int8_t watchdog();
+  void writeLED(uint8_t PIN, bool green);
+  void faultLED();
+  void heater(double temp);
+  void cutDown(bool on);
+  void watchdog();
 private:
-/*********************************  HELPERS  **********************************/
-  int8_t readData();
 /*********************************  OBJECTS  **********************************/
   Adafruit_MCP23017 mcp;
   PID pid;
-  double PIDOutPtr;
-  double PIDTempPtr;
-  double PIDSetPtr = PID_SETPOINT;
+  double PIDOutVar;
+  double PIDTempVar;
+  double PIDSetVar = PID_SETPOINT;
 };
 
 #endif

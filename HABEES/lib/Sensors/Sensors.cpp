@@ -16,7 +16,6 @@
   ---------------------------------
   This function initializes the sensor hardware.
 */
-char buf[] = "##:##:## ## ## ####";
 time_t getTeensy3Time() {return Teensy3Clock.get();}
 bool Sensors::init() {
   bool sucess = true;
@@ -138,6 +137,7 @@ double Sensors::getAltitude() {
   if (altitude_2 >= -75 && altitude_1 <= -75) return altitude_2;
   else return baro.getAltitude();
 }
+
 /*********************************  HELPERS  **********************************/
 /*
   function: convertDigits
