@@ -35,12 +35,34 @@ int8_t RockBLOCK::init() {
   It returns the length of a read message.
 */
 int8_t RockBLOCK::writeRead(char* buff, uint8_t len) {
-  uint8_t rxBuffer[BUFFER_SIZE] = {0};
   size_t  bufferSize = sizeof(rxBuffer);
-  for(size_t i = 0; i < len; i++) rxBuffer[i] = buff[i];
+  write(buff, len);
   delay(200);
   Serial.println("Sending RB message");
   if(isbd.sendReceiveSBDBinary(rxBuffer, len, rxBuffer, bufferSize) != ISBD_SUCCESS) return -1;
-  for(size_t i = 0; i < bufferSize; i++) buff[i] = rxBuffer[i];
+  read(buff, bufferSize);
   return bufferSize;
+}
+
+/*********************************  HELPERS  **********************************/
+/*
+  function: write
+  ---------------------------------
+  This function writes a bitstream to the rockblock buffer.
+*/
+void RockBLOCK::write(char* buff, uint8_t len) {
+  for(size_t i = 0; i < len; i++) {
+    rxBuffer[i] = buff[i];
+  }
+}
+
+/*
+  function: read
+  ---------------------------------
+  This function reads a bitstream from the rockblock buffer.
+*/
+void RockBLOCK::read(char* buff, uint8_t len) {
+  for(size_t i = 0; i < len; i++) {
+    buff[i] = rxBuffer[i];
+  }
 }
