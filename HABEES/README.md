@@ -56,6 +56,6 @@ Here is the current status of the code:
 10. Watchdog to prevent main thread halt.
 
 ####TODO
-1. Compress data frame into bitstream for comms.
+1. Compression of data frame into bitstream for comms.
 2. APRS downlink with Dorji.
 3. CAN communication of current state through payload interface
