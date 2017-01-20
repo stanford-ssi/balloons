@@ -34,23 +34,33 @@ public:
 
 private:
 /*********************************  HELPERS  **********************************/
-  int8_t  readData();
-  int8_t  logData();
+  bool    readData();
+  bool    logData();
 
-  int8_t  calcState();
-  int8_t  debugState();
-  int8_t  runHeaters();
-  int8_t  runCutdown();
+  bool    calcState();
+  bool    debugState();
+  bool    runHeaters();
+  bool    runCutdown();
 
-  int8_t  sendSATCOMS();
-  int8_t  sendAPRS();
-  int8_t  sendCAN();
+  bool    sendSATCOMS();
+  bool    sendAPRS();
+  bool    sendCAN();
 
-  int8_t  displayState();
-  int8_t  printState();
-  int16_t writeState();
+  int16_t compressData();
+  void    parseCommand(int16_t len);
+
+  void    calcVitals();
+  void    calcDebug();
+  void    calcCutdown();
+  void    calcAscent();
+
+  void    displayState();
+  void    printState();
+
+  void    printHeader();
+  void    logHeader();
+
   void    logAlert(const char*, bool fatal);
-  void    parseCommand(int8_t len);
   void    watchdog();
 /*********************************  OBJECTS  **********************************/
   DataFrame data;

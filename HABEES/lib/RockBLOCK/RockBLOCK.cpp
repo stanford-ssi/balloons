@@ -17,14 +17,14 @@
   ---------------------------------
   This function initializes the RockBlock module.
 */
-int8_t RockBLOCK::init() {
+bool RockBLOCK::init() {
   isbd.attachConsole(Serial);
   isbd.attachDiags(Serial);
   isbd.setPowerProfile(1);
   Serial3.begin(RB_BAUD);
   delay(5000);
   isbd.begin();
-  return 0;
+  return true;
 }
 
 /********************************  FUNCTIONS  *********************************/
@@ -34,7 +34,7 @@ int8_t RockBLOCK::init() {
   This function writes a bitstream across the communication interface.
   It returns the length of a read message.
 */
-int8_t RockBLOCK::writeRead(char* buff, uint8_t len) {
+int16_t RockBLOCK::writeRead(char* buff, uint16_t len) {
   size_t  bufferSize = sizeof(rxBuffer);
   write(buff, len);
   delay(200);
@@ -50,7 +50,7 @@ int8_t RockBLOCK::writeRead(char* buff, uint8_t len) {
   ---------------------------------
   This function writes a bitstream to the rockblock buffer.
 */
-void RockBLOCK::write(char* buff, uint8_t len) {
+void RockBLOCK::write(char* buff, uint16_t len) {
   for(size_t i = 0; i < len; i++) {
     rxBuffer[i] = buff[i];
   }
@@ -61,7 +61,7 @@ void RockBLOCK::write(char* buff, uint8_t len) {
   ---------------------------------
   This function reads a bitstream from the rockblock buffer.
 */
-void RockBLOCK::read(char* buff, uint8_t len) {
+void RockBLOCK::read(char* buff, uint16_t len) {
   for(size_t i = 0; i < len; i++) {
     buff[i] = rxBuffer[i];
   }

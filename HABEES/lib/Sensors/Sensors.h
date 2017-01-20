@@ -27,7 +27,7 @@ public:
     bme2(BMP_CS2),
     thermocouple(THERMOCPL_CS) {
   }
-  int8_t init();
+  bool        init();
 /********************************  FUNCTIONS  *********************************/
   const char* getTime();
   double      getVoltage();

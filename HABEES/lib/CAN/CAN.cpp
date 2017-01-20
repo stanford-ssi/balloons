@@ -18,8 +18,8 @@
   ---------------------------------
   This function initializes the CAN bus.
 */
-int8_t CAN::init() {
-  return 0;
+bool CAN::init() {
+  return true;;
 }
 
 /********************************  FUNCTIONS  *********************************/
@@ -28,6 +28,9 @@ int8_t CAN::init() {
   ---------------------------------
   This function writes a bitstream across the communication interface.
 */
-int8_t CAN::write(char* buff, uint8_t len) {
+int16_t CAN::write(char* buff, uint16_t len) {
+  for(size_t i = 0; i < len; i++) {
+    rxBuffer[i] = buff[i];
+  }
   return 0;
 }

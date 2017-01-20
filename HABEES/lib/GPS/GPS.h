@@ -18,7 +18,7 @@
 class GPS {
 public:
 /**********************************  SETUP  ***********************************/
-  int8_t init();
+  bool   init();
 /********************************  FUNCTIONS  *********************************/
   float  getLatitude();
   float  getLongitude();

@@ -66,8 +66,8 @@ static const uint8_t   RB_GOOD_LED        =     1;
 static const uint8_t   GPS_GOOD_LED       =     2;
 static const uint8_t   LOOP_GOOD_LED      =     3;
 static const uint8_t   BAT_GOOD_LED       =     4;
-static const uint8_t   I_GOOD_LED         =     5;
-static const uint8_t   P_GOOD_LED         =     6;
-static const uint8_t   T_GOOD_LED         =     7;
+static const uint8_t   CURR_GOOD_LED      =     5;
+static const uint8_t   PRES_GOOD_LED      =     6;
+static const uint8_t   TEMP_GOOD_LED      =     7;
 
 #endif
