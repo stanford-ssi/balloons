@@ -36,22 +36,25 @@ Here is the current status of the code:
 
 ####Flight Critical Systems
 1. MicroSD logging of current data frame to data.txt.
-2. MicroSD logging of errors and notable events to log.txt.
-3. Altitude readings from filtered and error checked BMP280 and MPL3115A2.
-4. External temperature reading from thermocouple.
-5. PID Heating on inboard heater trace.
-6. Flight termination optionally based on altitude and GPS setpoints.
-7. Current readings for heaters, cutdown FET, and radio.
-8. Debug LEDs for all appropriate states.
-9. Fault LED if anything flight-critical is not fully functioning.
-10. Debug mode disabled at altitude.
-11. Timestamp from on-board Teensy RTC.
-12. Integration of uBlox M8Q GPS.
-13. GPS successful set to flight mode.
-14. RockBlock data downlink.
+2. Altitude readings from filtered and error checked BMP280 and MPL3115A2.
+3. Timestamp from on-board Teensy RTC.
+4. PID Heating on inboard heater trace.
+5. Integration of uBlox M8Q GPS.
+6. RockBlock data downlink.
+7. Flight termination optionally based on altitude and GPS setpoints.
 
 ####Useful Flight Features
-1. Watchdog to prevent main thread halt.
-2. RockBlock command parsing for satcomms uplink.
-3. APRS downlink with Dorji.
-4. CAN communication of current state through payload interface
+1. MicroSD logging of errors and notable events to log.txt.
+2. External temperature reading from thermocouple.
+3. Ascent rate calculations from filtered and error checked data.
+4. Current readings for heaters, cutdown FET, and radio.
+5. Debug LEDs for all appropriate states.
+6. Fault LED if anything flight-critical is not fully functioning.
+7. Debug mode disabled at altitude.
+8. GPS successful set to flight mode.
+9. RockBlock command parsing for satcomms uplink.
+10. Watchdog to prevent main thread halt.
+
+####TODO
+1. APRS downlink with Dorji.
+2. CAN communication of current state through payload interface
