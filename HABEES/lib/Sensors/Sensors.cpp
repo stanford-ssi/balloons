@@ -79,9 +79,9 @@ double Sensors::getVoltage() {
 */
 double Sensors::getCurrent() {
   double current = 0;
-  current += inaHeater.getCurrent_mA();
-  current += inaCutdown.getCurrent_mA();
-  current += inaRadio.getCurrent_mA();
+  current += -1 * inaHeater.getCurrent_mA();
+  current += -1 * inaCutdown.getCurrent_mA();
+  current += -1 * inaRadio.getCurrent_mA();
   return current;
 }
 
