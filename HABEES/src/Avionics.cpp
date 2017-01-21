@@ -326,7 +326,8 @@ int16_t Avionics::compressData() {
   data.COMMS_BUFFER[length] = ','; length++;
 
   varSize = sizeof(data.PRESS_BMP);
-  memcpy(data.COMMS_BUFFER + length, &data.PRESS_BMP, varSize);length += varSize;
+  memcpy(data.COMMS_BUFFER + length, &data.PRESS_BMP, varSize);
+  length += varSize;
   data.COMMS_BUFFER[length] = ','; length++;
 
   varSize = sizeof(data.RB_SENT_COMMS);
