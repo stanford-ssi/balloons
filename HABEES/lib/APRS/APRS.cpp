@@ -31,5 +31,5 @@ int16_t APRS::write(char* buff, uint16_t len) {
   for(size_t i = 0; i < len; i++) {
     rxBuffer[i] = buff[i];
   }
-  return 0;
+  return -1;
 }

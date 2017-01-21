@@ -52,10 +52,10 @@ Here is the current status of the code:
 6. Fault LED if anything flight-critical is not fully functioning.
 7. Debug mode disabled at altitude.
 8. GPS successful set to flight mode.
-9. RockBlock command parsing for satcomms uplink.
-10. Watchdog to prevent main thread halt.
+9. Compression of data frame into bitstream for comms.
+10. RockBlock command parsing for satcomms uplink.
 
 ####TODO
-1. Compression of data frame into bitstream for comms.
+1. Watchdog to prevent main thread halt.
 2. APRS downlink with Dorji.
 3. CAN communication of current state through payload interface

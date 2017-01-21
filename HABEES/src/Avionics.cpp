@@ -26,8 +26,8 @@ void Avionics::init() {
   if(!sensors.init())     logAlert("unable to initialize Sensors", true);
   if(!gpsModule.init())   logAlert("unable to initialize GPS", true);
   if(!RBModule.init())    logAlert("unable to initialize RockBlock", true);
-  // if(!radioModule.init()) logAlert("unable to initialize radio", true);
-  // if(!canModule.init())   logAlert("unable to initialize CAN BUS", true);
+  if(!radioModule.init()) logAlert("unable to initialize radio", true);
+  if(!canModule.init())   logAlert("unable to initialize CAN BUS", true);
   watchdog();
   data.SETUP_STATE = false;
 }
@@ -40,7 +40,7 @@ void Avionics::init() {
  */
 void Avionics::updateData() {
   if(!readData()) logAlert("unable to read Data", true);
-  if(!logData()) logAlert("unable to log Data", true);
+  if(!logData())  logAlert("unable to log Data", true);
   watchdog();
 }
 
@@ -50,7 +50,7 @@ void Avionics::updateData() {
  * This function intelligently reacts to the current data frame.
  */
 void Avionics::evaluateState() {
-  if(!calcState()) logAlert("unable to calculate state", true);
+  if(!calcState())  logAlert("unable to calculate state", true);
   if(!debugState()) logAlert("unable to debug state", true);
   if(!runHeaters()) logAlert("unable to run heaters", true);
   if(!runCutdown()) logAlert("unable to run cutdown", true);
@@ -64,10 +64,10 @@ void Avionics::evaluateState() {
  */
 void Avionics::sendComms() {
   if((millis() - data.COMMS_LAST) < COMMS_RATE) return;
-  if(compressData()  < 0) logAlert("unable to write to COMMS buffer", true);
-  if(!sendSATCOMS()) logAlert("unable to communicate over RB", true);
-  // if(!sendAPRS()) logAlert("unable to communicate over APRS", true);
-  // if(!sendCAN()) logAlert("unable to communicate over CAN", true);
+  if(compressData() < 0) logAlert("unable to write to COMMS buffer", true);
+  if(!sendSATCOMS())     logAlert("unable to communicate over RB", true);
+  if(!sendAPRS())        logAlert("unable to communicate over APRS", true);
+  if(!sendCAN())         logAlert("unable to communicate over CAN", true);
   data.COMMS_LAST = millis();
   watchdog();
 }
@@ -219,10 +219,12 @@ bool Avionics::runCutdown() {
  */
 bool Avionics::sendSATCOMS() {
   logAlert("sending Rockblock message", false);
-  data.RB_GOOD_STATE  = false;
   data.RB_SENT_COMMS++;
   int16_t ret = RBModule.writeRead(data.COMMS_BUFFER, data.COMMS_LENGTH);
-  if(ret < 0) return false;
+  if(ret < 0) {
+    data.RB_GOOD_STATE  = false;
+    return false;
+  }
   data.RB_GOOD_STATE  = true;
   if(ret > 0) parseCommand(ret);
   return true;
@@ -234,7 +236,7 @@ bool Avionics::sendSATCOMS() {
  * This function sends the current data frame over the APRS RF IO.
  */
 bool Avionics::sendAPRS() {
-logAlert("sending APRS message", false);
+  logAlert("sending APRS message", false);
   radioModule.write(data.COMMS_BUFFER, data.COMMS_LENGTH);
   return true;
 }
@@ -245,9 +247,13 @@ logAlert("sending APRS message", false);
  * This function sends the current data frame over the CAN BUS IO.
  */
 bool Avionics::sendCAN() {
-logAlert("sending CAN message", false);
-  data.CAN_GOOD_STATE = false;
-  canModule.write(data.COMMS_BUFFER, data.COMMS_LENGTH);
+  logAlert("sending CAN message", false);
+  int16_t ret = canModule.write(data.COMMS_BUFFER, data.COMMS_LENGTH);
+  if(ret < 0) {
+    data.CAN_GOOD_STATE  = false;
+    return false;
+  }
+  data.CAN_GOOD_STATE  = true;
   return true;
 }
 
@@ -258,13 +264,80 @@ logAlert("sending CAN message", false);
  */
 int16_t Avionics::compressData() {
   int16_t length = 0;
-  for(uint16_t i = 0; i < BUFFER_SIZE; i++) {
-    data.COMMS_BUFFER[0] = '!';
+  size_t varSize = sizeof(data.TIME);
+  for(uint16_t i = 0; i < varSize; i++) {
+    data.COMMS_BUFFER[i] = data.TIME[i];
     length++;
   }
-  // double num = 123412341234.123456789;
-  // char output[50];
-  // snprintf(output, 50, "%.2f", num);
+  data.COMMS_BUFFER[length] = ','; length++;
+  varSize = sizeof(data.LOOP_RATE);
+  memcpy(data.COMMS_BUFFER + length, &data.LOOP_RATE, varSize);
+  length += varSize;
+  data.COMMS_BUFFER[length] = ','; length++;
+
+  varSize = sizeof(data.VOLTAGE);
+  memcpy(data.COMMS_BUFFER + length, &data.VOLTAGE, varSize);
+  length += varSize;
+  data.COMMS_BUFFER[length] = ','; length++;
+
+  varSize = sizeof(data.CURRENT);
+  memcpy(data.COMMS_BUFFER + length, &data.CURRENT, varSize);
+  length += varSize;
+  data.COMMS_BUFFER[length] = ','; length++;
+
+  varSize = sizeof(data.ALTITUDE_BMP);
+  memcpy(data.COMMS_BUFFER + length, &data.ALTITUDE_BMP, varSize);
+  length += varSize;
+  data.COMMS_BUFFER[length] = ','; length++;
+
+  varSize = sizeof(data.ASCENT_RATE);
+  memcpy(data.COMMS_BUFFER + length, &data.ASCENT_RATE, varSize);
+  length += varSize;
+  data.COMMS_BUFFER[length] = ','; length++;
+
+  varSize = sizeof(data.TEMP_IN);
+  memcpy(data.COMMS_BUFFER + length, &data.TEMP_IN, varSize);
+  length += varSize;
+  data.COMMS_BUFFER[length] = ','; length++;
+
+  varSize = sizeof(data.TEMP_EXT);
+  memcpy(data.COMMS_BUFFER + length, &data.TEMP_EXT, varSize);
+  length += varSize;
+  data.COMMS_BUFFER[length] = ','; length++;
+
+  varSize = sizeof(data.LAT_GPS);
+  memcpy(data.COMMS_BUFFER + length, &data.LAT_GPS, varSize);
+  length += varSize;
+  data.COMMS_BUFFER[length] = ','; length++;
+
+  varSize = sizeof(data.LONG_GPS);
+  memcpy(data.COMMS_BUFFER + length, &data.LONG_GPS, varSize);
+  length += varSize;
+  data.COMMS_BUFFER[length] = ','; length++;
+
+  varSize = sizeof(data.SPEED_GPS);
+  memcpy(data.COMMS_BUFFER + length, &data.SPEED_GPS, varSize);
+  length += varSize;
+  data.COMMS_BUFFER[length] = ','; length++;
+
+  varSize = sizeof(data.ALTITUDE_GPS);
+  memcpy(data.COMMS_BUFFER + length, &data.ALTITUDE_GPS, varSize);
+  length += varSize;
+  data.COMMS_BUFFER[length] = ','; length++;
+
+  varSize = sizeof(data.PRESS_BMP);
+  memcpy(data.COMMS_BUFFER + length, &data.PRESS_BMP, varSize);length += varSize;
+  data.COMMS_BUFFER[length] = ','; length++;
+
+  varSize = sizeof(data.RB_SENT_COMMS);
+  memcpy(data.COMMS_BUFFER + length, &data.RB_SENT_COMMS, varSize);
+  length += varSize;
+  data.COMMS_BUFFER[length] = ','; length++;
+
+  varSize = sizeof(data.CUTDOWN_STATE);
+  memcpy(data.COMMS_BUFFER + length, &data.CUTDOWN_STATE, varSize);
+  length += varSize;
+
   return length;
 }
 
