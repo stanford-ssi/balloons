@@ -25,7 +25,7 @@ void Avionics::init() {
   logHeader();
   if(!sensors.init())     logAlert("unable to initialize Sensors", true);
   if(!gpsModule.init())   logAlert("unable to initialize GPS", true);
-  // if(!RBModule.init())    logAlert("unable to initialize RockBlock", true);
+  if(!RBModule.init())    logAlert("unable to initialize RockBlock", true);
   // if(!radioModule.init()) logAlert("unable to initialize radio", true);
   // if(!canModule.init())   logAlert("unable to initialize CAN BUS", true);
   watchdog();
@@ -65,7 +65,7 @@ void Avionics::evaluateState() {
 void Avionics::sendComms() {
   if((millis() - data.COMMS_LAST) < COMMS_RATE) return;
   if(compressData()  < 0) logAlert("unable to write to COMMS buffer", true);
-  // if(!sendSATCOMS()) logAlert("unable to communicate over RB", true);
+  if(!sendSATCOMS()) logAlert("unable to communicate over RB", true);
   // if(!sendAPRS()) logAlert("unable to communicate over APRS", true);
   // if(!sendCAN()) logAlert("unable to communicate over CAN", true);
   data.COMMS_LAST = millis();
@@ -286,7 +286,7 @@ void Avionics::parseCommand(int16_t len) {
  */
 void Avionics::calcVitals() {
   data.BAT_GOOD_STATE    = (data.VOLTAGE >= 3.63);
-  data.CURR_GOOD_STATE   = (data.CURRENT > 0.0 && data.CURRENT <= 500.0);
+  data.CURR_GOOD_STATE   = (data.CURRENT > -5.0 && data.CURRENT <= 500.0);
   data.PRES_GOOD_STATE   = (data.ALTITUDE_BMP > -50 && data.ALTITUDE_BMP < 200);
   data.TEMP_GOOD_STATE   = (data.TEMP_IN > 15 && data.TEMP_IN < 50);
   data.GPS_GOOD_STATE    = (data.LAT_GPS != 1000.0 && data.LAT_GPS != 0.0 && data.LONG_GPS != 1000.0 && data.LONG_GPS != 0.0);
