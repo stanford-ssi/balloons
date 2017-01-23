@@ -41,6 +41,15 @@ static const uint16_t  GPS_BAUD           =  9600;
 static const uint16_t  RB_BAUD            = 19200;
 static const double    PID_SETPOINT       =     0;
 
+static const char      APRS_COMMENT[]     = "SSI-52";
+static const char      TARGET_CALLSIGN[]  = "APRS";
+static const char      TX_CALLSIGN[]      = "KM6HBK";
+static const char      DEFAULT_PATH[]     = "WIDE2";
+static const uint8_t   MAX_EXTRA_DATA     =   100;
+static const uint8_t   TARGET_DESIG       =     0;
+static const uint8_t   TX_DESIG           =    11;
+static const uint8_t   PATH_DESIG         =     1;
+
 /*****************************  TEENSY PIN OUTS  ******************************/
 static const uint8_t   SD_CS              =    21;
 static const uint8_t   BMP_CS1            =    20;
@@ -61,15 +70,6 @@ static const uint8_t   DRA_TX             =   A16;
 static const uint8_t   DRA_RX             =   A17;
 static const uint8_t   DRA_MIC            =   A14;
 static const uint8_t   DRA_PTT            =    A2;
-
-static const char* const   APRS_COMMENT   = "SSI-52";
-static const uint8_t  MAX_EXTRA_DATA      =   100;
-static const char* const   TARGET_CALLSIGN= "APRS";
-static const uint8_t  TARGET_DESIG        =     0;
-static const char* const   TX_CALLSIGN    = "KM6HBK";
-static const uint8_t  TX_DESIG            =    11;
-static const char* const    DEFAULT_PATH  = "WIDE2";
-static const uint8_t  PATH_DESIG          =     1;
 
 static const uint8_t   CAN_GOOD_LED       =     0;
 static const uint8_t   RB_GOOD_LED        =     1;

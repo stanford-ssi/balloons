@@ -15,7 +15,7 @@
 
 /**********************************  data  ************************************/
 struct DataFrame {
-  char         TIME[20]           =    "##:##:## ## ## ####";
+  char         TIME[20]           = "##:##:## ## ## ####";
   uint16_t     LOOP_RATE          =     0;
   double       VOLTAGE            =     0;
   double       CURRENT            =     0;
