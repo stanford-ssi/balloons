@@ -147,6 +147,8 @@ bool Avionics::logData() {
   dataFile.print(',');
   dataFile.print(data.SPEED_GPS);
   dataFile.print(',');
+  dataFile.print(data.HEADING_GPS);
+  dataFile.print(',');
   dataFile.print(data.ALTITUDE_GPS);
   dataFile.print(',');
   dataFile.print(data.PRESS_BMP);
@@ -321,6 +323,11 @@ int16_t Avionics::compressData() {
   length += varSize;
   data.COMMS_BUFFER[length] = ','; length++;
 
+  varSize = sizeof(data.HEADING_GPS);
+  memcpy(data.COMMS_BUFFER + length, &data.HEADING_GPS, varSize);
+  length += varSize;
+  data.COMMS_BUFFER[length] = ','; length++;
+
   varSize = sizeof(data.ALTITUDE_GPS);
   memcpy(data.COMMS_BUFFER + length, &data.ALTITUDE_GPS, varSize);
   length += varSize;
@@ -452,6 +459,8 @@ void Avionics::printState() {
   Serial.print(data.LONG_GPS, 4);
   Serial.print(',');
   Serial.print(data.SPEED_GPS);
+  Serial.print(',');
+  Serial.print(data.HEADING_GPS);
   Serial.print(',');
   Serial.print(data.ALTITUDE_GPS);
   Serial.print(',');
