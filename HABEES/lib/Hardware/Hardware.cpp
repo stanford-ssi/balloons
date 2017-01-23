@@ -17,12 +17,12 @@
   This function initializes the PCB hardware.
 */
 void Hardware::init() {
-  mcp.begin();
   pinMode(WATCHDOG_PIN, OUTPUT);
   pinMode(FAULT_PIN, OUTPUT);
   pinMode(HEATER_PIN, OUTPUT);
   pinMode(CUTDOWN_PIN, OUTPUT);
   analogWrite(CUTDOWN_PIN, 0);
+  mcp.begin();
   for (uint8_t i = 0; i < 16; i++) mcp.pinMode(i,  OUTPUT);
   for (uint8_t i = 0; i < 8; i++) writeLED(i, false);
 }

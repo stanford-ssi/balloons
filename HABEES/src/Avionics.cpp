@@ -223,6 +223,12 @@ bool Avionics::sendSATCOMS() {
   int16_t ret = RBModule.writeRead(data.COMMS_BUFFER, data.COMMS_LENGTH);
   if(ret < 0) {
     data.RB_GOOD_STATE  = false;
+
+
+    Serial.print("ERORRRRRRRRRRRRRRR:");
+    Serial.println(ret);
+
+
     return false;
   }
   data.RB_GOOD_STATE  = true;
