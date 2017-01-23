@@ -61,7 +61,14 @@ float GPS::getAltitude(){
 float GPS::getSpeed(){
   return tinygps.speed.mph();
 }
-
+/*
+  function: getCourse
+  ---------------------------------
+  This function returns the current heading in degrees.
+*/
+double GPS::getCourse(){
+  return tinygps.course.deg();
+}
 /*
  * Function: smartDelay
  * -------------------

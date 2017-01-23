@@ -112,6 +112,7 @@ bool Avionics::readData() {
   data.LAT_GPS         = gpsModule.getLatitude();
   data.LONG_GPS        = gpsModule.getLongitude();
   data.ALTITUDE_GPS    = gpsModule.getAltitude();
+  data.HEADING_GPS     = gpsModule.getCourse();
   data.SPEED_GPS       = gpsModule.getSpeed();
   return true;
 }
@@ -237,7 +238,7 @@ bool Avionics::sendSATCOMS() {
  */
 bool Avionics::sendAPRS() {
   logAlert("sending APRS message", false);
-  radioModule.write(data.COMMS_BUFFER, data.COMMS_LENGTH);
+  radioModule.sendPacket(data);
   return true;
 }
 

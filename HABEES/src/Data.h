@@ -26,6 +26,7 @@ struct DataFrame {
   float        LAT_GPS            =     0;
   float        LONG_GPS           =     0;
   double       SPEED_GPS          =     0;
+  double       HEADING_GPS        =     0;
   double       ALTITUDE_GPS       =     0;
   double       PRESS_BMP          =     0;
   uint16_t     RB_SENT_COMMS      =     0;

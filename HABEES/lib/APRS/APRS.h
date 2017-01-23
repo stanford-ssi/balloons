@@ -11,30 +11,46 @@
 
 #ifndef APRS_H
 #define APRS_H
+#include <string>
+#include "../../src/Data.h"
+#include "afsk.h"
+#include <SoftwareSerial.h>
 
-#include "../../src/Config.h"
+using namespace std;
 
-/*
-  Global variable specified in Config.h
-  --------------------------
-  static const uint8_t   DRA_ENABLE        =    A0;
-  static const uint8_t   DRA_SLEEP         =   A18;
-  static const uint8_t   DRA_PWR           =    A3;
-  static const uint8_t   DRA_TX            =   A16;
-  static const uint8_t   DRA_RX            =   A17;
-  static const uint8_t   DRA_MIC           =   A14;
-  static const uint8_t   DRA_PTT           =    A2;
-*/
-
-class APRS {
-public:
-/**********************************  SETUP  ***********************************/
-  bool init();
-/********************************  FUNCTIONS  *********************************/
-  int16_t write(char* buff, uint16_t len);
-private:
-/*********************************  OBJECTS  **********************************/
-  uint8_t rxBuffer[BUFFER_SIZE] = {0};
+class DRA818V;
+struct SSID {
+    const char* address;
+    uint8_t ssid_designator;
 };
 
-#endif
+class APRS
+{
+public:
+    APRS();
+    void setSSIDs();
+    bool init();
+    void sendAdditionalData(const char* extData, uint8_t len);
+    void sendPacket(DataFrame &dataArr);
+    void sendPacketNoGPS(string data);
+    void sendPacketNoGPS(char* data);
+    int getPacketSize();
+    void clearPacket();
+private:
+    void loadHeader();
+    void loadData(uint8_t *data_buffer, uint8_t length);
+    void loadFooter();
+    void loadTrailingBits(uint8_t bitIndex);
+    void loadByte(uint8_t byte);
+    void loadBit(uint8_t bit, bool bitStuff);
+    void loadString(const char* str);
+    void loadString(string str);
+    void loadHDLCFlag();
+    void update_crc(uint8_t bit);
+    DRA818V* radio;
+    SSID* ssids;
+    uint8_t num_ssids;
+    volatile uint8_t* packet_buffer;
+    int packet_size;
+};
+#endif // APRS_H

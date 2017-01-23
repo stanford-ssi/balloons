@@ -24,6 +24,7 @@ public:
   float  getLongitude();
   float  getAltitude();
   float  getSpeed();
+  double getCourse();
   void   smartDelay(uint64_t ms);
 private:
 /*********************************  HELPERS  **********************************/
