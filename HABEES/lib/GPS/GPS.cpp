@@ -47,18 +47,18 @@ float GPS::getLongitude(){
 /*
   function: getAltitude
   ---------------------------------
-  This function returns the current altitude.
+  This function returns the current altitude in meters.
 */
-float GPS::getAltitude(){
+double GPS::getAltitude(){
   return tinygps.altitude.meters();
 }
 
 /*
   function: getSpeed
   ---------------------------------
-  This function returns the current speed.
+  This function returns the current speed in mph.
 */
-float GPS::getSpeed(){
+double GPS::getSpeed(){
   return tinygps.speed.mph();
 }
 /*

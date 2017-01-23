@@ -63,6 +63,7 @@ private:
   void    logAlert(const char*, bool fatal);
   void    watchdog();
 /*********************************  OBJECTS  **********************************/
+  char COMMS_BUFFER[BUFFER_SIZE];
   DataFrame data;
   File dataFile;
   Hardware PCB;

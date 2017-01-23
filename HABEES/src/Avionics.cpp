@@ -223,7 +223,7 @@ bool Avionics::runCutdown() {
 bool Avionics::sendSATCOMS() {
   logAlert("sending Rockblock message", false);
   data.RB_SENT_COMMS++;
-  int16_t ret = RBModule.writeRead(data.COMMS_BUFFER, data.COMMS_LENGTH);
+  int16_t ret = RBModule.writeRead(COMMS_BUFFER, data.COMMS_LENGTH);
   if(ret < 0) {
     data.RB_GOOD_STATE  = false;
     return false;
@@ -251,7 +251,7 @@ bool Avionics::sendAPRS() {
  */
 bool Avionics::sendCAN() {
   logAlert("sending CAN message", false);
-  int16_t ret = canModule.write(data.COMMS_BUFFER, data.COMMS_LENGTH);
+  int16_t ret = canModule.write(COMMS_BUFFER, data.COMMS_LENGTH);
   if(ret < 0) {
     data.CAN_GOOD_STATE  = false;
     return false;
@@ -269,84 +269,84 @@ int16_t Avionics::compressData() {
   int16_t length = 0;
   size_t varSize = sizeof(data.TIME);
   for(uint16_t i = 0; i < varSize; i++) {
-    data.COMMS_BUFFER[i] = data.TIME[i];
+    COMMS_BUFFER[i] = data.TIME[i];
     length++;
   }
-  data.COMMS_BUFFER[length] = ','; length++;
+  COMMS_BUFFER[length] = ','; length++;
   varSize = sizeof(data.LOOP_RATE);
-  memcpy(data.COMMS_BUFFER + length, &data.LOOP_RATE, varSize);
+  memcpy(COMMS_BUFFER + length, &data.LOOP_RATE, varSize);
   length += varSize;
-  data.COMMS_BUFFER[length] = ','; length++;
+  COMMS_BUFFER[length] = ','; length++;
 
   varSize = sizeof(data.VOLTAGE);
-  memcpy(data.COMMS_BUFFER + length, &data.VOLTAGE, varSize);
+  memcpy(COMMS_BUFFER + length, &data.VOLTAGE, varSize);
   length += varSize;
-  data.COMMS_BUFFER[length] = ','; length++;
+  COMMS_BUFFER[length] = ','; length++;
 
   varSize = sizeof(data.CURRENT);
-  memcpy(data.COMMS_BUFFER + length, &data.CURRENT, varSize);
+  memcpy(COMMS_BUFFER + length, &data.CURRENT, varSize);
   length += varSize;
-  data.COMMS_BUFFER[length] = ','; length++;
+  COMMS_BUFFER[length] = ','; length++;
 
   varSize = sizeof(data.ALTITUDE_BMP);
-  memcpy(data.COMMS_BUFFER + length, &data.ALTITUDE_BMP, varSize);
+  memcpy(COMMS_BUFFER + length, &data.ALTITUDE_BMP, varSize);
   length += varSize;
-  data.COMMS_BUFFER[length] = ','; length++;
+  COMMS_BUFFER[length] = ','; length++;
 
   varSize = sizeof(data.ASCENT_RATE);
-  memcpy(data.COMMS_BUFFER + length, &data.ASCENT_RATE, varSize);
+  memcpy(COMMS_BUFFER + length, &data.ASCENT_RATE, varSize);
   length += varSize;
-  data.COMMS_BUFFER[length] = ','; length++;
+  COMMS_BUFFER[length] = ','; length++;
 
   varSize = sizeof(data.TEMP_IN);
-  memcpy(data.COMMS_BUFFER + length, &data.TEMP_IN, varSize);
+  memcpy(COMMS_BUFFER + length, &data.TEMP_IN, varSize);
   length += varSize;
-  data.COMMS_BUFFER[length] = ','; length++;
+  COMMS_BUFFER[length] = ','; length++;
 
   varSize = sizeof(data.TEMP_EXT);
-  memcpy(data.COMMS_BUFFER + length, &data.TEMP_EXT, varSize);
+  memcpy(COMMS_BUFFER + length, &data.TEMP_EXT, varSize);
   length += varSize;
-  data.COMMS_BUFFER[length] = ','; length++;
+  COMMS_BUFFER[length] = ','; length++;
 
   varSize = sizeof(data.LAT_GPS);
-  memcpy(data.COMMS_BUFFER + length, &data.LAT_GPS, varSize);
+  memcpy(COMMS_BUFFER + length, &data.LAT_GPS, varSize);
   length += varSize;
-  data.COMMS_BUFFER[length] = ','; length++;
+  COMMS_BUFFER[length] = ','; length++;
 
   varSize = sizeof(data.LONG_GPS);
-  memcpy(data.COMMS_BUFFER + length, &data.LONG_GPS, varSize);
+  memcpy(COMMS_BUFFER + length, &data.LONG_GPS, varSize);
   length += varSize;
-  data.COMMS_BUFFER[length] = ','; length++;
+  COMMS_BUFFER[length] = ','; length++;
 
   varSize = sizeof(data.SPEED_GPS);
-  memcpy(data.COMMS_BUFFER + length, &data.SPEED_GPS, varSize);
+  memcpy(COMMS_BUFFER + length, &data.SPEED_GPS, varSize);
   length += varSize;
-  data.COMMS_BUFFER[length] = ','; length++;
+  COMMS_BUFFER[length] = ','; length++;
 
   varSize = sizeof(data.HEADING_GPS);
-  memcpy(data.COMMS_BUFFER + length, &data.HEADING_GPS, varSize);
+  memcpy(COMMS_BUFFER + length, &data.HEADING_GPS, varSize);
   length += varSize;
-  data.COMMS_BUFFER[length] = ','; length++;
+  COMMS_BUFFER[length] = ','; length++;
 
   varSize = sizeof(data.ALTITUDE_GPS);
-  memcpy(data.COMMS_BUFFER + length, &data.ALTITUDE_GPS, varSize);
+  memcpy(COMMS_BUFFER + length, &data.ALTITUDE_GPS, varSize);
   length += varSize;
-  data.COMMS_BUFFER[length] = ','; length++;
+  COMMS_BUFFER[length] = ','; length++;
 
   varSize = sizeof(data.PRESS_BMP);
-  memcpy(data.COMMS_BUFFER + length, &data.PRESS_BMP, varSize);
+  memcpy(COMMS_BUFFER + length, &data.PRESS_BMP, varSize);
   length += varSize;
-  data.COMMS_BUFFER[length] = ','; length++;
+  COMMS_BUFFER[length] = ','; length++;
 
   varSize = sizeof(data.RB_SENT_COMMS);
-  memcpy(data.COMMS_BUFFER + length, &data.RB_SENT_COMMS, varSize);
+  memcpy(COMMS_BUFFER + length, &data.RB_SENT_COMMS, varSize);
   length += varSize;
-  data.COMMS_BUFFER[length] = ','; length++;
+  COMMS_BUFFER[length] = ','; length++;
 
   varSize = sizeof(data.CUTDOWN_STATE);
-  memcpy(data.COMMS_BUFFER + length, &data.CUTDOWN_STATE, varSize);
+  memcpy(COMMS_BUFFER + length, &data.CUTDOWN_STATE, varSize);
   length += varSize;
-
+  data.COMMS_LENGTH = length;
   return length;
 }
 
@@ -356,7 +356,7 @@ int16_t Avionics::compressData() {
  * This function parses the command received from the RockBLOCK.
  */
 void Avionics::parseCommand(int16_t len) {
-  if(strncmp(data.COMMS_BUFFER, CUTDOWN_COMAND, len)) {
+  if(strncmp(COMMS_BUFFER, CUTDOWN_COMAND, len)) {
     data.SHOULD_CUTDOWN = true;
   }
 }

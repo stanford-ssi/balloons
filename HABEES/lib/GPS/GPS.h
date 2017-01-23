@@ -22,8 +22,8 @@ public:
 /********************************  FUNCTIONS  *********************************/
   float  getLatitude();
   float  getLongitude();
-  float  getAltitude();
-  float  getSpeed();
+  double  getAltitude();
+  double  getSpeed();
   double getCourse();
   void   smartDelay(uint64_t ms);
 private:

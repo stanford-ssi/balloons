@@ -51,7 +51,6 @@ struct DataFrame {
   uint64_t     LOOP_START         =     0;
   uint16_t     COMMS_LENGTH       =     0;
   float        ASCENT_BUFFER[BUFFER_SIZE];
-  char         COMMS_BUFFER[BUFFER_SIZE];
 } ;
 
 #endif
