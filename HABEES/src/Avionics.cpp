@@ -240,6 +240,7 @@ bool Avionics::sendSATCOMS() {
  */
 bool Avionics::sendAPRS() {
   logAlert("sending APRS message", false);
+  radioModule.sendAdditionalData(COMMS_BUFFER, data.COMMS_LENGTH);
   radioModule.sendPacket(data);
   return true;
 }

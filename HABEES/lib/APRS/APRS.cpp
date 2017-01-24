@@ -130,7 +130,7 @@ void APRS::setSSIDs() {
     ssids[3].ssid_designator = 2;
 }
 
-void sendAdditionalData(const char* extData, uint8_t len) {
+void APRS::sendAdditionalData(char* extData, uint8_t len) {
     for(int i = 0; i < len; i++) {
       extraData[i] = extData[i];
     }
