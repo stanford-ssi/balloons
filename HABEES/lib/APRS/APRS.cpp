@@ -23,8 +23,7 @@ uint16_t crc = 0;
 uint8_t consecutiveOnes = 0;
 uint8_t bitMask= B00000000;
 uint8_t bitPos = 8;
-char extraData[MAX_EXTRA_DATA];
-
+char extraData[BUFFER_SIZE];
 
 void latToStr(char * const s, const int size, float lat);
 void lonToStr(char * const s, const int size, float lon);
@@ -94,7 +93,7 @@ void APRS::sendPacket(DataFrame &dataFr) {
     APRS::loadString("/A="); // Altitude (feet). Goes anywhere in the comment area
     snprintf(temp, sizeof(temp), "%06ld", (long) (altitude / 0.3048)); // 10000 ft = 3048 m
     APRS::loadString(temp);
-    // APRS::loadString(extraData);
+    APRS::loadString(extraData);
     APRS::loadString(APRS_COMMENT);
     APRS::loadFooter();
     APRS::loadTrailingBits(bitPos);//load the trailing bits that might exist due to bitstuffing
@@ -137,10 +136,14 @@ void APRS::setSSIDs() {
     ssids[3].ssid_designator = 2;
 }
 
-void sendAdditionalData(const char* extData, uint8_t len) {
+void APRS::sendAdditionalData(const char* extData, uint16_t len) {
     for(int i = 0; i < len; i++) {
       extraData[i] = extData[i];
     }
+    // Serial.println("bufadd");
+    // Serial.println(len);
+    // Serial.println(strlen(extraData));
+    // Serial.println(strlen(extData));
 }
 
 void APRS::loadHeader() {
