@@ -16,7 +16,7 @@ uint8_t NUM_HDLC_FLAGS = 2; //default number
 uint8_t NUM_SSIDS = 3; //default number
 static const uint8_t MAX_SSIDS = 4;
 bool USE_WIDE2_2 = false;
-static const int MAX_BUFFER_SIZE = 256; //bytes
+static const int MAX_BUFFER_SIZE = 512; //bytes
 static const uint8_t BIT_STUFF_THRESHOLD = 5; //APRS protocol
 
 uint16_t crc = 0;
@@ -30,7 +30,8 @@ void latToStr(char * const s, const int size, float lat);
 void lonToStr(char * const s, const int size, float lon);
 APRS::APRS() {
    packet_buffer = new uint8_t[MAX_BUFFER_SIZE]();
-  //  ssids = new SSID[MAX_SSIDS];
+   packet_size = 0;
+   ssids = new SSID[MAX_SSIDS];
 }
 /**********************************  SETUP  ***********************************/
 /*
@@ -41,6 +42,7 @@ APRS::APRS() {
 bool APRS::init() {
     radio = new DRA818V();
     setSSIDs();
+    packet_size = 0;
     if(radio->init()) {
         return true;
     }
@@ -92,10 +94,15 @@ void APRS::sendPacket(DataFrame &dataFr) {
     APRS::loadString("/A="); // Altitude (feet). Goes anywhere in the comment area
     snprintf(temp, sizeof(temp), "%06ld", (long) (altitude / 0.3048)); // 10000 ft = 3048 m
     APRS::loadString(temp);
-    APRS::loadString(extraData);
+    // APRS::loadString(extraData);
     APRS::loadString(APRS_COMMENT);
     APRS::loadFooter();
     APRS::loadTrailingBits(bitPos);//load the trailing bits that might exist due to bitstuffing
+    if(dataFr.DEBUG_STATE) {
+        Serial.print("APRS Packet being transmitted of size: ");
+        Serial.print(APRS::getPacketSize()/8);
+        Serial.println("bytes");
+    }
     afsk_modulate_packet(packet_buffer, APRS::getPacketSize(),(8-bitPos));
     }
 
@@ -107,6 +114,7 @@ void APRS::sendPacketNoGPS(char* data) {
     bitPos = 8;
     APRS::clearPacket();
     APRS::loadHeader();
+
     APRS::loadString(data);
     APRS::loadFooter();
     APRS::loadTrailingBits(bitPos);//load the trailing bits that might exist due to bitstuffing
@@ -119,7 +127,6 @@ void APRS::clearPacket() {
 
 void APRS::setSSIDs() {
     num_ssids = NUM_SSIDS;
-    ssids = new SSID[num_ssids];
     ssids[0].address = TARGET_CALLSIGN;
     ssids[0].ssid_designator = TARGET_DESIG;
     ssids[1].address = TX_CALLSIGN;
@@ -130,7 +137,7 @@ void APRS::setSSIDs() {
     ssids[3].ssid_designator = 2;
 }
 
-void APRS::sendAdditionalData(char* extData, uint8_t len) {
+void sendAdditionalData(const char* extData, uint8_t len) {
     for(int i = 0; i < len; i++) {
       extraData[i] = extData[i];
     }
@@ -188,7 +195,7 @@ void APRS::loadFooter() {
 //Transmits a byte of information, which can be anything except for the FCS sequence.
 //By protocol, all bytes are transmitted least significant byte first, except for the FCS sequence.
 void APRS::loadByte(uint8_t byte) {
-//  Serial.println(byte,BIN);
+ // Serial.println(byte,BIN);
     for(int i = 0; i < 8; i++) {
         APRS::loadBit(byte & 1,true);
         byte>>=1;//next iteration transmits the next bit to the left
@@ -208,7 +215,7 @@ void APRS::loadTrailingBits(uint8_t bitIndex) {
 }
 
 void APRS::loadBit(uint8_t bit, bool bitStuff) {
-    if(packet_size >= MAX_BUFFER_SIZE) return;
+    if(packet_size >= 8*MAX_BUFFER_SIZE) return;
 //    Serial.println(bit);
 //    Serial.println(bitPos);
     if (bitStuff) {

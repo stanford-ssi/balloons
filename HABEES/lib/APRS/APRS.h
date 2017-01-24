@@ -30,7 +30,7 @@ public:
     APRS();
     void setSSIDs();
     bool init();
-    void sendAdditionalData(char* extData, uint8_t len);
+    void sendAdditionalData(const char* extData, uint8_t len);
     void sendPacket(DataFrame &dataArr);
     void sendPacketNoGPS(string data);
     void sendPacketNoGPS(char* data);

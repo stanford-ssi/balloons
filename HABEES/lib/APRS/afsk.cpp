@@ -59,7 +59,6 @@ uint16_t sineLookup(const int currentPhase) {
 void afsk_modulate_packet(volatile uint8_t *buffer, int size, int trailingBits) {
     packet = buffer;
     packet_size = size;
-    Serial.println(size);
     analogWriteResolution(SINE_WAVE_RESOLUTION);
     afsk_timer_begin();
 }

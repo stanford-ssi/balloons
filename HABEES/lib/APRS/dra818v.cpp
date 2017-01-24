@@ -29,7 +29,6 @@ bool DRA818V::init() {
     }
     digitalWrite(pttPin,LOW);
     delay(200);
-    Serial.println("asdf");
     radioSerial->print("AT+DMOCONNECT\r\n");
     digitalWrite(pttPin,HIGH);
     delay(200);
