@@ -119,6 +119,7 @@ void APRS::clearPacket() {
 
 void APRS::setSSIDs() {
     num_ssids = NUM_SSIDS;
+    ssids = new SSID[num_ssids];
     ssids[0].address = TARGET_CALLSIGN;
     ssids[0].ssid_designator = TARGET_DESIG;
     ssids[1].address = TX_CALLSIGN;
