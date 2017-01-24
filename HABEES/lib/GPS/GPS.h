@@ -15,6 +15,8 @@
 #include <TinyGPS++.h>
 #include "../../src/Config.h"
 
+#define _GPGGAterm   "GPGGA"
+
 class GPS {
 public:
 /**********************************  SETUP  ***********************************/
