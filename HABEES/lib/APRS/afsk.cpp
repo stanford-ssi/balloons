@@ -9,7 +9,7 @@ static const float PREEMPHASIS_RATIO = 0.75;
 static const int BIT_RATE = 1200; //APRS standard.
 static const uint32_t SAMPLE_RATE = 9600;
 static const uint32_t SAMPLES_PER_BIT = SAMPLE_RATE / BIT_RATE;
-static const int PTT_DELAY = 700; //ms
+static const int PTT_DELAY = 1000; //ms
 static const int DEBUG_PRESCALER = 1;//Set to 1 for full speed, higher to slow down interrupts by that factor
 
 //Phase Delta Constants

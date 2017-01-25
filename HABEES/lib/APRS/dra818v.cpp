@@ -6,6 +6,7 @@ static const float APRS_NA_FRX = 144.390; //receiving frequency in MHz
 static const int SOFT_SERIAL_BAUD = 9600;
 static const int SERIAL_BAUD = 9600;
 static const bool CHANNEL_SCAN_BW = true; //true: 25kHz, false: 12.5kHz
+
 DRA818V::DRA818V()
 {
     sleepPin = DRA_SLEEP;

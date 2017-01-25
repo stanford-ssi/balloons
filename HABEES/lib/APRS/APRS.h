@@ -44,6 +44,7 @@ private:
     void loadByte(uint8_t byte);
     void loadBit(uint8_t bit, bool bitStuff);
     void loadString(const char* str);
+    void loadString(const char* str, uint16_t len);
     void loadString(string str);
     void loadHDLCFlag();
     void update_crc(uint8_t bit);
