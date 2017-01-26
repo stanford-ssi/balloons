@@ -25,6 +25,7 @@ void Hardware::init() {
   mcp.begin();
   for (uint8_t i = 0; i < 16; i++) mcp.pinMode(i,  OUTPUT);
   for (uint8_t i = 0; i < 8; i++) writeLED(i, false);
+  analogWriteResolution(ANALOG_RES);
 }
 
 /********************************  FUNCTIONS  *********************************/
@@ -63,7 +64,7 @@ void Hardware::faultLED() {
 void Hardware::heater(double temp) {
   PIDTempVar = temp;
   pid.Compute();
-  if (PIDOutVar != 0.0) analogWrite(HEATER_PIN, PIDOutVar / 2 + 127.50);
+  if (PIDOutVar != 0.0) analogWrite(HEATER_PIN, PIDOutVar / 2 + (ANALOG_MAX / 2));
   else analogWrite(HEATER_PIN, 0);
 }
 
@@ -73,7 +74,7 @@ void Hardware::heater(double temp) {
   This function triggers the mechanical cutdown of the payload.
 */
 void Hardware::cutDown(bool on) {
-  if(on) analogWrite(CUTDOWN_PIN, 255);
+  if(on) analogWrite(CUTDOWN_PIN, ANALOG_MAX);
   else   analogWrite(CUTDOWN_PIN, 0);
 }
 

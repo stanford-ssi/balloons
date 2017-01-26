@@ -59,7 +59,6 @@ uint16_t sineLookup(const int currentPhase) {
 void afsk_modulate_packet(volatile uint8_t *buffer, int size, int trailingBits) {
     packet = buffer;
     packet_size = size;
-    analogWriteResolution(SINE_WAVE_RESOLUTION);
     afsk_timer_begin();
 }
 
@@ -91,7 +90,7 @@ void radioISR() {
     if(bitIndex == 0) {
         if(packetIndex >= packet_size) {
             txing = false;
-            analogWrite(DRA_MIC,SINE_WAVE_MAX/2);
+            analogWrite(DRA_MIC,ANALOG_MAX/2);
             digitalWrite(DRA_PTT,HIGH);
             afsk_timer_stop();
             return;

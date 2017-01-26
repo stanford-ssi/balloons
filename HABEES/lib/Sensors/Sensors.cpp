@@ -132,9 +132,9 @@ double Sensors::getPressure() {
 double Sensors::getAltitude() {
   double altitude_1 = bme1.readAltitude(1013.25);
   double altitude_2 = bme2.readAltitude(1013.25);
-  if (altitude_1 >= -75 && altitude_2 >= -75) return (altitude_1 + altitude_2) / 2;
-  if (altitude_1 >= -75 && altitude_2 <= -75) return altitude_1;
-  if (altitude_2 >= -75 && altitude_1 <= -75) return altitude_2;
+  if (altitude_1 >= -50 && altitude_2 >= -50) return (altitude_1 + altitude_2) / 2;
+  if (altitude_1 >= -50 && altitude_2 <= -50) return altitude_1;
+  if (altitude_2 >= -50 && altitude_1 <= -50) return altitude_2;
   else return baro.getAltitude();
 }
 
