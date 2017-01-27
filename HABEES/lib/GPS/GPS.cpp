@@ -31,7 +31,7 @@ bool GPS::init() {
   ---------------------------------
   This function returns the current latitude.
 */
-float GPS::getLatitude(){
+float GPS::getLatitude() {
   return tinygps.location.lat();
 }
 
@@ -40,7 +40,7 @@ float GPS::getLatitude(){
   ---------------------------------
   This function returns the current longitude.
 */
-float GPS::getLongitude(){
+float GPS::getLongitude() {
   return tinygps.location.lng();
 }
 
@@ -49,7 +49,7 @@ float GPS::getLongitude(){
   ---------------------------------
   This function returns the current altitude in meters.
 */
-double GPS::getAltitude(){
+double GPS::getAltitude() {
   return tinygps.altitude.meters();
 }
 
@@ -58,16 +58,26 @@ double GPS::getAltitude(){
   ---------------------------------
   This function returns the current speed in mph.
 */
-double GPS::getSpeed(){
+double GPS::getSpeed() {
   return tinygps.speed.mph();
 }
+
 /*
   function: getCourse
   ---------------------------------
   This function returns the current heading in degrees.
 */
-double GPS::getCourse(){
+double GPS::getCourse() {
   return tinygps.course.deg();
+}
+
+/*
+  function: getSats
+  ---------------------------------
+  This function returns the number of satelites detected.
+*/
+uint32_t GPS::getSats() {
+  return tinygps.satellites.value();
 }
 /*
  * Function: smartDelay

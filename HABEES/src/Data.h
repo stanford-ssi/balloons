@@ -29,6 +29,7 @@ struct DataFrame {
   double       HEADING_GPS        =     0;
   double       ALTITUDE_GPS       =     0;
   double       PRESS_BMP          =     0;
+  uint32_t     NUM_SATS_GPS       =     0;
   uint16_t     RB_SENT_COMMS      =     0;
   bool         CUTDOWN_STATE      = false;
 

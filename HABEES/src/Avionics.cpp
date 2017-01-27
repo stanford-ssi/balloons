@@ -114,6 +114,7 @@ bool Avionics::readData() {
   data.ALTITUDE_GPS    = gpsModule.getAltitude();
   data.HEADING_GPS     = gpsModule.getCourse();
   data.SPEED_GPS       = gpsModule.getSpeed();
+  data.NUM_SATS_GPS    = gpsModule.getSats();
   return true;
 }
 
@@ -152,6 +153,8 @@ bool Avionics::logData() {
   dataFile.print(data.ALTITUDE_GPS);
   dataFile.print(',');
   dataFile.print(data.PRESS_BMP);
+  dataFile.print(',');
+  dataFile.print(data.NUM_SATS_GPS);
   dataFile.print(',');
   dataFile.print(data.RB_SENT_COMMS);
   dataFile.print(',');
@@ -339,6 +342,11 @@ int16_t Avionics::compressData() {
   length += varSize;
   COMMS_BUFFER[length] = ','; length++;
 
+  varSize = sizeof(data.NUM_SATS_GPS);
+  memcpy(COMMS_BUFFER + length, &data.NUM_SATS_GPS, varSize);
+  length += varSize;
+  COMMS_BUFFER[length] = ','; length++;
+
   varSize = sizeof(data.RB_SENT_COMMS);
   memcpy(COMMS_BUFFER + length, &data.RB_SENT_COMMS, varSize);
   length += varSize;
@@ -466,6 +474,8 @@ void Avionics::printState() {
   Serial.print(data.ALTITUDE_GPS);
   Serial.print(',');
   Serial.print(data.PRESS_BMP);
+  Serial.print(',');
+  Serial.print(data.NUM_SATS_GPS);
   Serial.print(',');
   Serial.print(data.RB_SENT_COMMS);
   Serial.print(',');
