@@ -401,8 +401,8 @@ void Avionics::calcDebug() {
  */
 void Avionics::calcCutdown() {
   if(CUTDOWN_GPS_ENABLE && data.GPS_GOOD_STATE &&
-    ((GPS_FENCE_LAT_MIN  < data.LAT_GPS) && (data.LAT_GPS < GPS_FENCE_LAT_MAX)) &&
-    ((GPS_FENCE_LON_MIN  < data.LONG_GPS) && (data.LONG_GPS < GPS_FENCE_LON_MAX))
+    (((data.LAT_GPS < GPS_FENCE_LAT_MIN) || (data.LAT_GPS > GPS_FENCE_LAT_MAX)) ||
+    ((data.LONG_GPS < GPS_FENCE_LON_MIN) || (data.LONG_GPS > GPS_FENCE_LON_MAX)))
   ) data.SHOULD_CUTDOWN  = true;
 
   if(CUTDOWN_ALT_ENABLE && !data.CUTDOWN_STATE &&
