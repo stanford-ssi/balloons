@@ -12,7 +12,7 @@
 #include "APRS.h"
 
 static const uint8_t HDLC_FLAG = 0x7E;
-uint8_t NUM_HDLC_FLAGS = 2; //default number
+uint8_t NUM_HDLC_FLAGS = 50; //default number
 uint8_t NUM_SSIDS = 3; //default number
 static const uint8_t MAX_SSIDS = 4;
 bool USE_WIDE2_2 = false;
