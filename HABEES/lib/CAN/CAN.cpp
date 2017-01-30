@@ -32,10 +32,18 @@ bool CAN::init() {
   This function writes a bitstream across the communication interface.
 */
 int16_t CAN::write(char* buff, uint16_t len) {
-  for(size_t i = 0; i < len; i++) {
-    rxBuffer[i] = buff[i];
+  static CAN_message_t msg;
+
+  for(size_t i = 0; i < len; i+=8) {
+    for(uint8_t j = 0; j < 8; j++){
+      if(i+j < len){
+        msg.buf[j] = buff[i+j];
+      }
+      else{ msg.buf[j] = 0; }
+    }
+    if( CANbus.write(msg) == 0){return -1;}
   }
-  return -1;
+  return 0;
 }
 
 /*
