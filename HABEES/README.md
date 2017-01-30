@@ -54,8 +54,6 @@ Here is the current status of the code:
 8. GPS successful set to flight mode.
 9. Compression of data frame into bitstream for comms.
 10. RockBlock command parsing for satcomms uplink.
-
-####TODO
-1. Watchdog to prevent main thread halt.
-2. APRS downlink with Dorji.
-3. CAN communication of current state through payload interface
+11. APRS downlink with Dorji.
+12. CAN communication of current state through payload interface
+13. Watchdog to prevent main thread halt.

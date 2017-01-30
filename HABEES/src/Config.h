@@ -63,10 +63,6 @@ static const uint8_t   WATCHDOG_PIN       =    33;
 static const uint8_t   FAULT_PIN          =    24;
 static const uint8_t   VBAT_PIN           =   A13;
 
-static const uint8_t   CAN_TX		      =     3;
-static const uint8_t   CAN_RX			  =		4;
-static const uint8_t   CAN_ENABLE     	  =		5; 
-
 static const uint8_t   GPS_ENABLE         =    26;
 static const uint8_t   RB_SLEEP           =     9;
 static const uint8_t   DRA_ENABLE         =    A0;
@@ -76,6 +72,9 @@ static const uint8_t   DRA_TX             =   A16;
 static const uint8_t   DRA_RX             =   A17;
 static const uint8_t   DRA_MIC            =   A14;
 static const uint8_t   DRA_PTT            =    A2;
+static const uint8_t   CAN_ENABLE     	  =		  5;
+static const uint8_t   CAN_TX		          =     3;
+static const uint8_t   CAN_RX			        =		  4;
 
 static const uint8_t   CAN_GOOD_LED       =     0;
 static const uint8_t   RB_GOOD_LED        =     1;
