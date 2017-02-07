@@ -31,7 +31,6 @@ static const float     GPS_FENCE_LON_MIN  = -9999;
 static const float     GPS_FENCE_LON_MAX  =  9999;
 
 static const uint16_t  COMMS_RATE         = 60000;
-static const uint16_t  WATCHDOG_RATE      =  200;
 static const uint16_t  LOOP_RATE          =    50;
 
 static const uint16_t  DEBUG_ALT          =   300;
@@ -42,46 +41,30 @@ static const uint16_t  GPS_BAUD           =  9600;
 static const uint16_t  RB_BAUD            = 19200;
 static const double    PID_SETPOINT       =     0;
 
-static const char      APRS_COMMENT[]     = "SSI-52";
-static const char      TARGET_CALLSIGN[]  = "APRS";
-static const char      TX_CALLSIGN[]      = "KM6HBK";
-static const char      DEFAULT_PATH[]     = "WIDE2";
-static const uint8_t   MAX_EXTRA_DATA     =   100;
-static const uint8_t   TARGET_DESIG       =     0;
-static const uint8_t   TX_DESIG           =    11;
-static const uint8_t   PATH_DESIG         =     1;
 
 /*****************************  TEENSY PIN OUTS  ******************************/
-static const uint8_t   SD_CS              =    21;
-static const uint8_t   BMP_CS1            =    20;
-static const uint8_t   BMP_CS2            =    15;
-static const uint8_t   THERMOCPL_CS       =    22;
-static const uint8_t   CUTDOWN_PIN        =    25;
-static const uint8_t   HEATER_PIN         =    23;
-static const uint8_t   WATCHDOG_PIN       =    33;
-static const uint8_t   FAULT_PIN          =    24;
-static const uint8_t   VBAT_PIN           =   A13;
+static const uint8_t   RB_SLEEP                =  14;  // RockBLOCK sleep pin
+static const uint8_t   CHIP_SELECT             =  10;  // SD Card Chip Select Pin
+static const uint8_t   BALLAST_REVERSE         =   5;   // Ballast Reverse Pin
+static const uint8_t   BALLAST_FORWARD         =  21;   // Ballast Forward Pin
+static const uint8_t   VALVE_REVERSE           =   6;
+static const uint8_t   VALVE_FORWARD           =   0;
+static const uint8_t   HEATER_INTERNAL_STRONG  =   4;  // Heater PWM for internal payload
+static const uint8_t   HEATER_INTERNAL_WEAK    =   3;
+static const uint8_t   V_BATT                  = A14; // Analog pin for reading voltage of battery
+static const uint8_t   LED_PIN                 =  26;
+static const uint8_t   BMP_CS_ONE              =   9;
+static const uint8_t   BMP_CS_TWO              =  15;
+static const uint8_t   BMP_CS_THREE            =   5;
+static const uint8_t   BMP_CS_FOUR             =  32;
+static const uint8_t   GPS_ENABLE              =  17;
+static const uint8_t   BATT_CURRENT            = A10;
+static const uint8_t   EXTERNAL_CURRENT        = A11;
+static const uint8_t   VALVE_POT               =  A2;
+static const uint8_t   RB_GATE                 =  28;
+static const uint8_t   PAYLOAD_GATE            =  31;
+static const uint8_t   FEMTO_RX                =  23;
+static const uint8_t   FEMTO_TX                =  22;
 
-static const uint8_t   GPS_ENABLE         =    26;
-static const uint8_t   RB_SLEEP           =     9;
-static const uint8_t   DRA_ENABLE         =    A0;
-static const uint8_t   DRA_SLEEP          =   A18;
-static const uint8_t   DRA_PWR            =    A3;
-static const uint8_t   DRA_TX             =   A16;
-static const uint8_t   DRA_RX             =   A17;
-static const uint8_t   DRA_MIC            =   A14;
-static const uint8_t   DRA_PTT            =    A2;
-static const uint8_t   CAN_ENABLE     	  =		  5;
-static const uint8_t   CAN_TX		          =     3;
-static const uint8_t   CAN_RX			        =		  4;
-
-static const uint8_t   CAN_GOOD_LED       =     0;
-static const uint8_t   RB_GOOD_LED        =     1;
-static const uint8_t   GPS_GOOD_LED       =     2;
-static const uint8_t   LOOP_GOOD_LED      =     3;
-static const uint8_t   BAT_GOOD_LED       =     4;
-static const uint8_t   CURR_GOOD_LED      =     5;
-static const uint8_t   PRES_GOOD_LED      =     6;
-static const uint8_t   TEMP_GOOD_LED      =     7;
 
 #endif
