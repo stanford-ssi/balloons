@@ -1,6 +1,6 @@
 /*
   Stanford Student Space Initiative
-  Balloons | HABEES | January 2017
+  Balloons | HABEES | February 2017
   Davy Ragland | dragland@stanford.edu
 
   File: Avionics.cpp
