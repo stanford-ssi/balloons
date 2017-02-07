@@ -21,11 +21,11 @@
 class Sensors {
 public:
 /**********************************  SETUP  ***********************************/
-  Sensors(uint8_t VBAT_PIN, uint8_t BMP_CS1, uint8_t BMP_CS2, uint8_t THERMOCPL_CS) :
-    VBAT_PIN(VBAT_PIN),
-    bme1(BMP_CS1),
-    bme2(BMP_CS2),
-    thermocouple(THERMOCPL_CS) {
+  Sensors(uint8_t VBAT_PIN_NUM, uint8_t BMP_CS1_NUM, uint8_t BMP_CS2_NUM, uint8_t THERMOCPL_CS_NUM) :
+    VBAT_PIN(VBAT_PIN_NUM),
+    bme1(BMP_CS1_NUM),
+    bme2(BMP_CS2_NUM),
+    thermocouple(THERMOCPL_CS_NUM) {
   }
   bool        init();
 /********************************  FUNCTIONS  *********************************/
