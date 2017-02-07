@@ -26,14 +26,10 @@ public:
   bool    init();
 /********************************  FUNCTIONS  *********************************/
   int16_t write(char* buff, uint16_t len);
-  void    canTestLoop(void);
 private:
-/*********************************  HELPERS  **********************************/
-  void    hexDump(uint8_t dumpLen, uint8_t *bytePtr);
 /*********************************  OBJECTS  **********************************/
   uint8_t rxBuffer[BUFFER_SIZE] = {0};
   FlexCAN CANbus;
-  Metro sysTimer = Metro(1);
 };
 
 #endif

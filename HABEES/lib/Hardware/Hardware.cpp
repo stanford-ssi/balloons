@@ -21,13 +21,11 @@ void Hardware::init() {
   pinMode(FAULT_PIN, OUTPUT);
   pinMode(HEATER_PIN, OUTPUT);
   pinMode(CUTDOWN_PIN, OUTPUT);
-  pinMode(CAN_ENABLE, OUTPUT);
   mcp.begin();
   for (uint8_t i = 0; i < 16; i++) mcp.pinMode(i,  OUTPUT);
   for (uint8_t i = 0; i < 8; i++) writeLED(i, false);
   analogWriteResolution(ANALOG_RES);
   analogWrite(CUTDOWN_PIN, 0);
-  analogWrite(CAN_ENABLE, 0); //high-speed mode
 }
 
 /********************************  FUNCTIONS  *********************************/

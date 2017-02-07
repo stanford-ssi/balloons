@@ -45,7 +45,7 @@ Here is the current status of the code:
 ####Useful Flight Features
 1. MicroSD logging of errors and notable events to log.txt.
 2. Ascent rate calculations from filtered and error checked data.
-3. Current readings. =
+3. Current readings.
 4. Debug mode disabled at altitude.
 5. GPS successful set to flight mode.
 6 Compression of data frame into bitstream for comms.
