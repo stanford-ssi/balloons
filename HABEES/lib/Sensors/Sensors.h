@@ -17,12 +17,12 @@
 #include <Adafruit_MAX31855.h>
 #include <Adafruit_INA219.h>
 #include <TimeLib.h>
-#include "../../src/Config.h"
 
 class Sensors {
 public:
 /**********************************  SETUP  ***********************************/
-  Sensors() :
+  Sensors(uint8_t VBAT_PIN, uint8_t BMP_CS1, uint8_t BMP_CS2, uint8_t THERMOCPL_CS) :
+    VBAT_PIN(VBAT_PIN),
     bme1(BMP_CS1),
     bme2(BMP_CS2),
     thermocouple(THERMOCPL_CS) {
@@ -41,6 +41,7 @@ private:
   void        convertDigits(uint8_t start, uint8_t digits);
   void        convertYear(uint8_t start, int year);
 /*********************************  OBJECTS  **********************************/
+  uint8_t VBAT_PIN;
   char buf[20] = {'\0'};
   Adafruit_BMP280 bme1;
   Adafruit_BMP280 bme2;

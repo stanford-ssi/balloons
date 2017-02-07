@@ -25,6 +25,9 @@
 class Avionics {
 public:
 /**********************************  SETUP  ***********************************/
+  Avionics() :
+    sensors(VBAT_PIN, BMP_CS1, BMP_CS2, THERMOCPL_CS) {
+  }
   void    init();
 /********************************  FUNCTIONS  *********************************/
   void    updateData();
