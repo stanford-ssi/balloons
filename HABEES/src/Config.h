@@ -19,7 +19,6 @@
 static const char      MISSION_NUMBER[]   = "SSI-52";
 static const char      CSV_DATA_HEADER[]  = "TIME,LOOP_RATE,VOLTAGE,CURRENT,ALTITUDE_BMP,ASCENT_RATE,TEMP_IN,TEMP_EXT,LAT_GPS,LONG_GPS,SPEED_GPS,HEADING_GPS,ALTITUDE_GPS,PRESS_BMP,RB_SENT_COMMS,CUTDOWN_STATE";
 
-static const char      CUTDOWN_COMAND[]   = "I QUIT";
 static const bool      CUTDOWN_ALT_ENABLE =  true;
 static const bool      CUTDOWN_GPS_ENABLE =  true;
 static const uint16_t  CUTDOWN_ALT        = 20000;

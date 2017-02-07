@@ -12,6 +12,7 @@
 #define AVIONICS_H
 
 #include "Config.h"
+#include "Cutdown.h"
 #include "Data.h"
 #include <SD.h>
 #include <Sensors.h>
