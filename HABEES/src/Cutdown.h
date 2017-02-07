@@ -12,6 +12,6 @@
 #define CUTDOWN_H
 
 /****************************  EDITABLE CONSTANTS  ****************************/
-static const char CUTDOWN_COMAND[]   = "NOT REAL STRING";
+static const char CUTDOWN_COMAND[]   = "I QUIT";
 
 #endif
