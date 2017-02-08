@@ -71,9 +71,7 @@ static const uint8_t   DRA_TX             =      A16;
 static const uint8_t   DRA_RX             =      A17;
 static const uint8_t   DRA_MIC            =      A14;
 static const uint8_t   DRA_PTT            =       A2;
-static const uint8_t   CAN_ENABLE     	  =		     5;
-static const uint8_t   CAN_TX		          =        3;
-static const uint8_t   CAN_RX			        =		     4;
+static const uint8_t   CAN_ENABLE         =        5;
 
 static const uint8_t   CAN_GOOD_LED       =        0;
 static const uint8_t   RB_GOOD_LED        =        1;
