@@ -13,12 +13,15 @@
 #define RockBlock_H
 
 #include <IridiumSBD.h>
-#include "../../src/Config.h"
 
 class RockBLOCK {
 public:
 /**********************************  SETUP  ***********************************/
-  RockBLOCK() : isbd(Serial3, RB_SLEEP){}
+  RockBLOCK(uint8_t RB_SLEEP_PIN, uint16_t RB_BAUD_VAL, uint16_t BUFFER_SIZE_VAL) :
+    isbd(Serial3, RB_SLEEP_PIN),
+    RB_BAUD(RB_BAUD_VAL),
+    BUFFER_SIZE(BUFFER_SIZE_VAL) {
+  }
   bool    init();
 /********************************  FUNCTIONS  *********************************/
   int16_t writeRead(char* buff, uint16_t len);
@@ -27,8 +30,10 @@ private:
   void    write(char* buff, uint16_t len);
   void    read(char* buff, uint16_t len);
 /*********************************  OBJECTS  **********************************/
-  uint8_t rxBuffer[BUFFER_SIZE] = {0};
   IridiumSBD isbd;
+  uint16_t RB_BAUD;
+  uint16_t BUFFER_SIZE;
+  uint8_t  rxBuffer[200] = {0};
 };
 
 #endif

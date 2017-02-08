@@ -96,7 +96,7 @@ void APRS::sendPacket(DataFrame &dataFr) {
     snprintf(temp, sizeof(temp), "%06ld", (long) (altitude / 0.3048)); // 10000 ft = 3048 m
     APRS::loadString(temp);
     APRS::loadString(extraData,extraLen);
-    APRS::loadString(APRS_COMMENT);
+    APRS::loadString(MISSION_NUMBER);
     APRS::loadFooter();
     APRS::loadTrailingBits(bitPos);//load the trailing bits that might exist due to bitstuffing
     if(dataFr.DEBUG_STATE) {
