@@ -43,33 +43,26 @@ public:
 private:
 /*********************************  HELPERS  **********************************/
   bool    readData();
-  bool    logData();
-
   bool    calcState();
   bool    debugState();
   bool    runHeaters();
   bool    runCutdown();
-
+  bool    sendCAN();
   bool    sendSATCOMS();
   bool    sendAPRS();
-  bool    sendCAN();
-
-  int16_t compressData();
   void    parseCommand(int16_t len);
-
   void    calcVitals();
   void    calcDebug();
   void    calcCutdown();
   void    calcAscent();
-
   void    displayState();
-  void    printState();
-
   void    printHeader();
   void    logHeader();
-
   void    logAlert(const char*, bool fatal);
   void    watchdog();
+  void    printState();
+  bool    logData();
+  int16_t compressData();
 /*********************************  OBJECTS  **********************************/
   char COMMS_BUFFER[BUFFER_SIZE];
   DataFrame data;

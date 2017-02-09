@@ -40,7 +40,7 @@ void Avionics::init() {
  */
 void Avionics::updateData() {
   if(!readData()) logAlert("unable to read Data", true);
-  if(!logData())  logAlert("unable to log Data", true);
+  if(!logData()) logAlert("unable to log Data", true);
   watchdog();
 }
 
@@ -63,11 +63,11 @@ void Avionics::evaluateState() {
  * This function sends the current data frame down.
  */
 void Avionics::sendComms() {
+  if(compressData() < 0) logAlert("unable to compress Data", true);
+  if(!sendCAN())         logAlert("unable to communicate over CAN", true);
   if((millis() - data.COMMS_LAST) < COMMS_RATE) return;
-  if(compressData() < 0) logAlert("unable to write to COMMS buffer", true);
   if(!sendSATCOMS())     logAlert("unable to communicate over RB", true);
   if(!sendAPRS())        logAlert("unable to communicate over APRS", true);
-  if(!sendCAN())         logAlert("unable to communicate over CAN", true);
   data.COMMS_LAST = millis();
   watchdog();
 }
@@ -115,53 +115,6 @@ bool Avionics::readData() {
   data.HEADING_GPS     = gpsModule.getCourse();
   data.SPEED_GPS       = gpsModule.getSpeed();
   data.NUM_SATS_GPS    = gpsModule.getSats();
-  return true;
-}
-
-/*
- * Function: logData
- * -------------------
- * This function logs the current data frame.
- */
-bool Avionics::logData() {
-  dataFile = SD.open("data.txt", FILE_WRITE);
-  if(!dataFile) return false;
-  dataFile.print(data.TIME);
-  dataFile.print(',');
-  dataFile.print(data.LOOP_RATE);
-  dataFile.print(',');
-  dataFile.print(data.VOLTAGE);
-  dataFile.print(',');
-  dataFile.print(data.CURRENT);
-  dataFile.print(',');
-  dataFile.print(data.ALTITUDE_BMP);
-  dataFile.print(',');
-  dataFile.print(data.ASCENT_RATE);
-  dataFile.print(',');
-  dataFile.print(data.TEMP_IN);
-  dataFile.print(',');
-  dataFile.print(data.TEMP_EXT);
-  dataFile.print(',');
-  dataFile.print(data.LAT_GPS, 4);
-  dataFile.print(',');
-  dataFile.print(data.LONG_GPS, 4);
-  dataFile.print(',');
-  dataFile.print(data.SPEED_GPS);
-  dataFile.print(',');
-  dataFile.print(data.HEADING_GPS);
-  dataFile.print(',');
-  dataFile.print(data.ALTITUDE_GPS);
-  dataFile.print(',');
-  dataFile.print(data.PRESS_BMP);
-  dataFile.print(',');
-  dataFile.print(data.NUM_SATS_GPS);
-  dataFile.print(',');
-  dataFile.print(data.RB_SENT_COMMS);
-  dataFile.print(',');
-  dataFile.print(data.CUTDOWN_STATE);
-  dataFile.print('\n');
-  dataFile.flush();
-  dataFile.close();
   return true;
 }
 
@@ -219,6 +172,22 @@ bool Avionics::runCutdown() {
 }
 
 /*
+ * Function: sendCAN
+ * -------------------
+ * This function sends the current data frame over the CAN BUS IO.
+ */
+bool Avionics::sendCAN() {
+  logAlert("sending CAN message", false);
+  int16_t ret = canModule.write(COMMS_BUFFER, data.COMMS_LENGTH);
+  if(ret < 0) {
+    data.CAN_GOOD_STATE  = false;
+    return false;
+  }
+  data.CAN_GOOD_STATE  = true;
+  return true;
+}
+
+/*
  * Function: sendSATCOMS
  * -------------------
  * This function sends the current data frame over the ROCKBLOCK IO.
@@ -243,24 +212,249 @@ bool Avionics::sendSATCOMS() {
  */
 bool Avionics::sendAPRS() {
   logAlert("sending APRS message", false);
-  radioModule.sendAdditionalData(COMMS_BUFFER,data.COMMS_LENGTH);
+  radioModule.sendAdditionalData(COMMS_BUFFER, data.COMMS_LENGTH);
   radioModule.sendPacket(data);
   return true;
 }
 
 /*
- * Function: sendCAN
+ * Function: parseCommand
  * -------------------
- * This function sends the current data frame over the CAN BUS IO.
+ * This function parses the command received from the RockBLOCK.
  */
-bool Avionics::sendCAN() {
-  logAlert("sending CAN message", false);
-  int16_t ret = canModule.write(COMMS_BUFFER, data.COMMS_LENGTH);
-  if(ret < 0) {
-    data.CAN_GOOD_STATE  = false;
-    return false;
+void Avionics::parseCommand(int16_t len) {
+  if(strncmp(COMMS_BUFFER, CUTDOWN_COMAND, len)) {
+    data.SHOULD_CUTDOWN = true;
   }
-  data.CAN_GOOD_STATE  = true;
+}
+
+/*
+ * Function: calcVitals
+ * -------------------
+ * This function calculates if the current state is within bounds.
+ */
+void Avionics::calcVitals() {
+  data.BAT_GOOD_STATE    = (data.VOLTAGE >= 3.63);
+  data.CURR_GOOD_STATE   = (data.CURRENT > -5.0 && data.CURRENT <= 500.0);
+  data.PRES_GOOD_STATE   = (data.ALTITUDE_BMP > -50 && data.ALTITUDE_BMP < 200);
+  data.TEMP_GOOD_STATE   = (data.TEMP_IN > 15 && data.TEMP_IN < 50);
+  data.GPS_GOOD_STATE    = (data.LAT_GPS != 1000.0 && data.LAT_GPS != 0.0 && data.LONG_GPS != 1000.0 && data.LONG_GPS != 0.0);
+}
+
+/*
+ * Function: calcDebug
+ * -------------------
+ * This function calculates if the avionics is in debug mode.
+ */
+void Avionics::calcDebug() {
+  if(data.DEBUG_STATE   && (data.ALTITUDE_LAST >= DEBUG_ALT) && (data.ALTITUDE_BMP >= DEBUG_ALT)) {
+    data.DEBUG_STATE = false;
+  }
+}
+
+/*
+ * Function: calcCutdown
+ * -------------------
+ * This function calculates if the avionics should cutdown.
+ */
+void Avionics::calcCutdown() {
+  if(CUTDOWN_GPS_ENABLE && data.GPS_GOOD_STATE &&
+    (((data.LAT_GPS < GPS_FENCE_LAT_MIN) || (data.LAT_GPS > GPS_FENCE_LAT_MAX)) ||
+    ((data.LONG_GPS < GPS_FENCE_LON_MIN) || (data.LONG_GPS > GPS_FENCE_LON_MAX)))
+  ) data.SHOULD_CUTDOWN  = true;
+
+  if(CUTDOWN_ALT_ENABLE && !data.CUTDOWN_STATE &&
+    (data.ALTITUDE_LAST >= CUTDOWN_ALT) &&
+    (data.ALTITUDE_BMP  >= CUTDOWN_ALT)
+  ) data.SHOULD_CUTDOWN  = true;
+}
+
+/*
+ * Function: calcAscent
+ * -------------------
+ * This function calculates the current ascent rate.
+ */
+void Avionics::calcAscent() {
+  for (int i = 0; i < BUFFER_SIZE - 1; i++) data.ASCENT_BUFFER[i] = data.ASCENT_BUFFER[i + 1];
+  data.ASCENT_BUFFER[BUFFER_SIZE - 1] = (data.ALTITUDE_BMP - data.ALTITUDE_LAST) / ((millis() - data.ASCENT_RATE_LAST) / 1000.0);
+  data.ASCENT_RATE_LAST = millis();
+  float ascentRateTotal = 0;
+  for (int i = 0; i < BUFFER_SIZE; i++) ascentRateTotal += data.ASCENT_BUFFER[i];
+  data.ASCENT_RATE =  ascentRateTotal / BUFFER_SIZE;
+}
+
+/*
+ * Function: displayState
+ * -------------------
+ * This function displays the current avionics state.
+ */
+void Avionics::displayState() {
+    PCB.writeLED(BAT_GOOD_LED,  data.BAT_GOOD_STATE);
+    PCB.writeLED(CURR_GOOD_LED, data.CURR_GOOD_STATE);
+    PCB.writeLED(PRES_GOOD_LED, data.PRES_GOOD_STATE);
+    PCB.writeLED(TEMP_GOOD_LED, data.TEMP_GOOD_STATE);
+    PCB.writeLED(CAN_GOOD_LED,  data.CAN_GOOD_STATE);
+    PCB.writeLED(RB_GOOD_LED,   data.RB_GOOD_STATE);
+    PCB.writeLED(GPS_GOOD_LED,  data.GPS_GOOD_STATE);
+    PCB.writeLED(LOOP_GOOD_LED, data.LOOP_GOOD_STATE);
+}
+
+/*
+ * Function: printHeader
+ * -------------------
+ * This function prints the CSV header.
+ */
+void Avionics::printHeader() {
+  if(!Serial) PCB.faultLED();
+  Serial.print("Stanford Student Space Initiative Balloons Launch ");
+  Serial.print(MISSION_NUMBER);
+  Serial.print('\n');
+  Serial.print(CSV_DATA_HEADER);
+  Serial.print('\n');
+}
+
+/*
+ * Function: logHeader
+ * -------------------
+ * This function logs the CSV header.
+ */
+void Avionics::logHeader() {
+  dataFile = SD.open("data.txt", FILE_WRITE);
+  if(!dataFile) PCB.faultLED();
+  dataFile.print("Stanford Student Space Initiative Balloons Launch ");
+  dataFile.print(MISSION_NUMBER);
+  dataFile.print('\n');
+  dataFile.print(CSV_DATA_HEADER);
+  dataFile.print('\n');
+  dataFile.flush();
+  dataFile.close();
+}
+
+/*
+ * Function: logAlert
+ * -------------------
+ * This function logs important information whenever a specific event occurs.
+ */
+void Avionics::logAlert(const char* debug, bool fatal) {
+  if(fatal) PCB.faultLED();
+  dataFile = SD.open("log.txt", FILE_WRITE);
+  if(dataFile) {
+    dataFile.print(data.TIME);
+    dataFile.print(',');
+    if(fatal) dataFile.print("FATAL ERROR!!!!!!!!!!: ");
+    else dataFile.print("Alert: ");
+    dataFile.print(debug);
+    dataFile.print("...\n");
+    dataFile.flush();
+    dataFile.close();
+  }
+  if(data.DEBUG_STATE) {
+    Serial.print(data.TIME);
+    Serial.print(',');
+    if(fatal) Serial.print("FATAL ERROR!!!!!!!!!!: ");
+    else Serial.print("Alert: ");
+    Serial.print(debug);
+    Serial.print("...\n");
+  }
+}
+
+/*
+ * Function: watchdog
+ * -------------------
+ * This function pulses the watchdog IC in order to ensure that avionics recovers from a fatal crash.
+ */
+void Avionics::watchdog() {
+  if((millis() - data.WATCHDOG_LAST) < WATCHDOG_RATE) return;
+  PCB.watchdog();
+  data.WATCHDOG_LAST = millis();
+}
+
+/*
+ * Function: printState
+ * -------------------
+ * This function prints the current avionics state.
+ */
+void Avionics::printState() {
+  Serial.print(data.TIME);
+  Serial.print(',');
+  Serial.print(data.LOOP_RATE);
+  Serial.print(',');
+  Serial.print(data.VOLTAGE);
+  Serial.print(',');
+  Serial.print(data.CURRENT);
+  Serial.print(',');
+  Serial.print(data.ALTITUDE_BMP);
+  Serial.print(',');
+  Serial.print(data.ASCENT_RATE);
+  Serial.print(',');
+  Serial.print(data.TEMP_IN);
+  Serial.print(',');
+  Serial.print(data.TEMP_EXT);
+  Serial.print(',');
+  Serial.print(data.LAT_GPS, 4);
+  Serial.print(',');
+  Serial.print(data.LONG_GPS, 4);
+  Serial.print(',');
+  Serial.print(data.SPEED_GPS);
+  Serial.print(',');
+  Serial.print(data.HEADING_GPS);
+  Serial.print(',');
+  Serial.print(data.ALTITUDE_GPS);
+  Serial.print(',');
+  Serial.print(data.PRESS_BMP);
+  Serial.print(',');
+  Serial.print(data.NUM_SATS_GPS);
+  Serial.print(',');
+  Serial.print(data.RB_SENT_COMMS);
+  Serial.print(',');
+  Serial.print(data.CUTDOWN_STATE);
+  Serial.print('\n');
+}
+
+/*
+ * Function: logData
+ * -------------------
+ * This function logs the current data frame.
+ */
+bool Avionics::logData() {
+  dataFile = SD.open("data.txt", FILE_WRITE);
+  if(!dataFile) return false;
+  dataFile.print(data.TIME);
+  dataFile.print(',');
+  dataFile.print(data.LOOP_RATE);
+  dataFile.print(',');
+  dataFile.print(data.VOLTAGE);
+  dataFile.print(',');
+  dataFile.print(data.CURRENT);
+  dataFile.print(',');
+  dataFile.print(data.ALTITUDE_BMP);
+  dataFile.print(',');
+  dataFile.print(data.ASCENT_RATE);
+  dataFile.print(',');
+  dataFile.print(data.TEMP_IN);
+  dataFile.print(',');
+  dataFile.print(data.TEMP_EXT);
+  dataFile.print(',');
+  dataFile.print(data.LAT_GPS, 4);
+  dataFile.print(',');
+  dataFile.print(data.LONG_GPS, 4);
+  dataFile.print(',');
+  dataFile.print(data.SPEED_GPS);
+  dataFile.print(',');
+  dataFile.print(data.HEADING_GPS);
+  dataFile.print(',');
+  dataFile.print(data.ALTITUDE_GPS);
+  dataFile.print(',');
+  dataFile.print(data.PRESS_BMP);
+  dataFile.print(',');
+  dataFile.print(data.NUM_SATS_GPS);
+  dataFile.print(',');
+  dataFile.print(data.RB_SENT_COMMS);
+  dataFile.print(',');
+  dataFile.print(data.CUTDOWN_STATE);
+  dataFile.print('\n');
+  dataFile.flush();
+  dataFile.close();
   return true;
 }
 
@@ -357,198 +551,4 @@ int16_t Avionics::compressData() {
   length += varSize;
   data.COMMS_LENGTH = length;
   return length;
-}
-
-/*
- * Function: parseCommand
- * -------------------
- * This function parses the command received from the RockBLOCK.
- */
-void Avionics::parseCommand(int16_t len) {
-  if(strncmp(COMMS_BUFFER, CUTDOWN_COMAND, len)) {
-    data.SHOULD_CUTDOWN = true;
-  }
-}
-
-/*
- * Function: calcVitals
- * -------------------
- * This function calculates if the current state is within bounds.
- */
-void Avionics::calcVitals() {
-  data.BAT_GOOD_STATE    = (data.VOLTAGE >= 3.63);
-  data.CURR_GOOD_STATE   = (data.CURRENT > -5.0 && data.CURRENT <= 500.0);
-  data.PRES_GOOD_STATE   = (data.ALTITUDE_BMP > -50 && data.ALTITUDE_BMP < 200);
-  data.TEMP_GOOD_STATE   = (data.TEMP_IN > 15 && data.TEMP_IN < 50);
-  data.GPS_GOOD_STATE    = (data.LAT_GPS != 1000.0 && data.LAT_GPS != 0.0 && data.LONG_GPS != 1000.0 && data.LONG_GPS != 0.0);
-}
-
-/*
- * Function: calcDebug
- * -------------------
- * This function calculates if the avionics is in debug mode.
- */
-void Avionics::calcDebug() {
-  if(data.DEBUG_STATE   && (data.ALTITUDE_LAST >= DEBUG_ALT) && (data.ALTITUDE_BMP >= DEBUG_ALT)) {
-    data.DEBUG_STATE = false;
-  }
-}
-
-/*
- * Function: calcCutdown
- * -------------------
- * This function calculates if the avionics should cutdown.
- */
-void Avionics::calcCutdown() {
-  if(CUTDOWN_GPS_ENABLE && data.GPS_GOOD_STATE &&
-    (((data.LAT_GPS < GPS_FENCE_LAT_MIN) || (data.LAT_GPS > GPS_FENCE_LAT_MAX)) ||
-    ((data.LONG_GPS < GPS_FENCE_LON_MIN) || (data.LONG_GPS > GPS_FENCE_LON_MAX)))
-  ) data.SHOULD_CUTDOWN  = true;
-
-  if(CUTDOWN_ALT_ENABLE && !data.CUTDOWN_STATE &&
-    (data.ALTITUDE_LAST >= CUTDOWN_ALT) &&
-    (data.ALTITUDE_BMP  >= CUTDOWN_ALT)
-  ) data.SHOULD_CUTDOWN  = true;
-}
-
-/*
- * Function: calcAscent
- * -------------------
- * This function calculates the current ascent rate.
- */
-void Avionics::calcAscent() {
-  for (int i = 0; i < BUFFER_SIZE - 1; i++) data.ASCENT_BUFFER[i] = data.ASCENT_BUFFER[i + 1];
-  data.ASCENT_BUFFER[BUFFER_SIZE - 1] = (data.ALTITUDE_BMP - data.ALTITUDE_LAST) / ((millis() - data.ASCENT_RATE_LAST) / 1000.0);
-  data.ASCENT_RATE_LAST = millis();
-  float ascentRateTotal = 0;
-  for (int i = 0; i < BUFFER_SIZE; i++) ascentRateTotal += data.ASCENT_BUFFER[i];
-  data.ASCENT_RATE =  ascentRateTotal / BUFFER_SIZE;
-}
-
-/*
- * Function: displayState
- * -------------------
- * This function displays the current avionics state.
- */
-void Avionics::displayState() {
-    PCB.writeLED(BAT_GOOD_LED,  data.BAT_GOOD_STATE);
-    PCB.writeLED(CURR_GOOD_LED, data.CURR_GOOD_STATE);
-    PCB.writeLED(PRES_GOOD_LED, data.PRES_GOOD_STATE);
-    PCB.writeLED(TEMP_GOOD_LED, data.TEMP_GOOD_STATE);
-    PCB.writeLED(CAN_GOOD_LED,  data.CAN_GOOD_STATE);
-    PCB.writeLED(RB_GOOD_LED,   data.RB_GOOD_STATE);
-    PCB.writeLED(GPS_GOOD_LED,  data.GPS_GOOD_STATE);
-    PCB.writeLED(LOOP_GOOD_LED, data.LOOP_GOOD_STATE);
-}
-
-/*
- * Function: printState
- * -------------------
- * This function prints the current avionics state.
- */
-void Avionics::printState() {
-  Serial.print(data.TIME);
-  Serial.print(',');
-  Serial.print(data.LOOP_RATE);
-  Serial.print(',');
-  Serial.print(data.VOLTAGE);
-  Serial.print(',');
-  Serial.print(data.CURRENT);
-  Serial.print(',');
-  Serial.print(data.ALTITUDE_BMP);
-  Serial.print(',');
-  Serial.print(data.ASCENT_RATE);
-  Serial.print(',');
-  Serial.print(data.TEMP_IN);
-  Serial.print(',');
-  Serial.print(data.TEMP_EXT);
-  Serial.print(',');
-  Serial.print(data.LAT_GPS, 4);
-  Serial.print(',');
-  Serial.print(data.LONG_GPS, 4);
-  Serial.print(',');
-  Serial.print(data.SPEED_GPS);
-  Serial.print(',');
-  Serial.print(data.HEADING_GPS);
-  Serial.print(',');
-  Serial.print(data.ALTITUDE_GPS);
-  Serial.print(',');
-  Serial.print(data.PRESS_BMP);
-  Serial.print(',');
-  Serial.print(data.NUM_SATS_GPS);
-  Serial.print(',');
-  Serial.print(data.RB_SENT_COMMS);
-  Serial.print(',');
-  Serial.print(data.CUTDOWN_STATE);
-  Serial.print('\n');
-}
-
-/*
- * Function: printHeader
- * -------------------
- * This function prints the CSV header.
- */
-void Avionics::printHeader() {
-  if(!Serial) PCB.faultLED();
-  Serial.print("Stanford Student Space Initiative Balloons Launch ");
-  Serial.print(MISSION_NUMBER);
-  Serial.print('\n');
-  Serial.print(CSV_DATA_HEADER);
-  Serial.print('\n');
-}
-
-/*
- * Function: logHeader
- * -------------------
- * This function logs the CSV header.
- */
-void Avionics::logHeader() {
-  dataFile = SD.open("data.txt", FILE_WRITE);
-  if(!dataFile) PCB.faultLED();
-  dataFile.print("Stanford Student Space Initiative Balloons Launch ");
-  dataFile.print(MISSION_NUMBER);
-  dataFile.print('\n');
-  dataFile.print(CSV_DATA_HEADER);
-  dataFile.print('\n');
-  dataFile.flush();
-  dataFile.close();
-}
-
-/*
- * Function: logAlert
- * -------------------
- * This function logs important information whenever a specific event occurs.
- */
-void Avionics::logAlert(const char* debug, bool fatal) {
-  if(fatal) PCB.faultLED();
-  dataFile = SD.open("log.txt", FILE_WRITE);
-  if(dataFile) {
-    dataFile.print(data.TIME);
-    dataFile.print(',');
-    if(fatal) dataFile.print("FATAL ERROR!!!!!!!!!!: ");
-    else dataFile.print("Alert: ");
-    dataFile.print(debug);
-    dataFile.print("...\n");
-    dataFile.flush();
-    dataFile.close();
-  }
-  if(data.DEBUG_STATE) {
-    Serial.print(data.TIME);
-    Serial.print(',');
-    if(fatal) Serial.print("FATAL ERROR!!!!!!!!!!: ");
-    else Serial.print("Alert: ");
-    Serial.print(debug);
-    Serial.print("...\n");
-  }
-}
-
-/*
- * Function: watchdog
- * -------------------
- * This function pulses the watchdog IC in order to ensure that avionics recovers from a fatal crash.
- */
-void Avionics::watchdog() {
-  if((millis() - data.WATCHDOG_LAST) < WATCHDOG_RATE) return;
-  PCB.watchdog();
-  data.WATCHDOG_LAST = millis();
 }
