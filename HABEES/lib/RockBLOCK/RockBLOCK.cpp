@@ -22,7 +22,7 @@ bool RockBLOCK::init() {
   isbd.attachDiags(Serial);
   isbd.setPowerProfile(1);
   Serial3.begin(RB_BAUD);
-  delay(5000);
+  delay(1000);
   isbd.begin();
   return true;
 }
@@ -35,6 +35,7 @@ bool RockBLOCK::init() {
   It returns the length of a read message.
 */
 int16_t RockBLOCK::writeRead(char* buff, uint16_t len) {
+  if(len > BUFFER_SIZE) return -1;
   size_t  bufferSize = sizeof(rxBuffer);
   write(buff, len);
   delay(200);

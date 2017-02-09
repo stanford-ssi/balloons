@@ -17,10 +17,9 @@
 class RockBLOCK {
 public:
 /**********************************  SETUP  ***********************************/
-  RockBLOCK(uint8_t RB_SLEEP_PIN, uint16_t RB_BAUD_VAL, uint16_t BUFFER_SIZE_VAL) :
+  RockBLOCK(uint8_t RB_SLEEP_PIN, uint16_t RB_BAUD_VAL) :
     isbd(Serial3, RB_SLEEP_PIN),
-    RB_BAUD(RB_BAUD_VAL),
-    BUFFER_SIZE(BUFFER_SIZE_VAL) {
+    RB_BAUD(RB_BAUD_VAL) {
   }
   bool    init();
 /********************************  FUNCTIONS  *********************************/
@@ -30,10 +29,10 @@ private:
   void    write(char* buff, uint16_t len);
   void    read(char* buff, uint16_t len);
 /*********************************  OBJECTS  **********************************/
+  static const uint16_t BUFFER_SIZE = 200;
+  uint8_t rxBuffer[BUFFER_SIZE] = {0};
   IridiumSBD isbd;
   uint16_t RB_BAUD;
-  uint16_t BUFFER_SIZE;
-  uint8_t  rxBuffer[200] = {0};
 };
 
 #endif

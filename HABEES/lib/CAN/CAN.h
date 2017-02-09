@@ -19,19 +19,18 @@
 class CAN {
 public:
 /**********************************  SETUP  ***********************************/
-  CAN(uint8_t CAN_ENABLE_PIN, uint32_t CAN_BAUD_VAL, uint16_t BUFFER_SIZE_VAL) :
-  CAN_ENABLE(CAN_ENABLE_PIN),
-  BUFFER_SIZE(BUFFER_SIZE_VAL),
-  CANbus(CAN_BAUD_VAL) {
+  CAN(uint8_t CAN_ENABLE_PIN, uint32_t CAN_BAUD_VAL) :
+    CAN_ENABLE(CAN_ENABLE_PIN),
+    CANbus(CAN_BAUD_VAL) {
   }
   bool    init();
 /********************************  FUNCTIONS  *********************************/
   int16_t write(char* buff, uint16_t len);
 private:
 /*********************************  OBJECTS  **********************************/
-  uint8_t  CAN_ENABLE;
-  uint16_t BUFFER_SIZE;
-  uint8_t crxBuffer[200] = {0};
+  static const uint16_t BUFFER_SIZE = 200;
+  uint8_t crxBuffer[BUFFER_SIZE] = {0};
+  uint8_t CAN_ENABLE;
   FlexCAN CANbus;
 };
 

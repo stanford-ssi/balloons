@@ -29,8 +29,8 @@ public:
     PCB(WATCHDOG_PIN, FAULT_PIN, HEATER_PIN, CUTDOWN_PIN, PID_SETPOINT, ANALOG_RES, ANALOG_MAX, LOOP_RATE),
     sensors(VBAT_PIN, BMP_CS1, BMP_CS2, THERMOCPL_CS),
     gpsModule(GPS_ENABLE, GPS_BAUD, GPS_LOCK_TIME),
-    RBModule(RB_SLEEP, RB_BAUD, BUFFER_SIZE),
-    canModule(CAN_ENABLE, CAN_BAUD, BUFFER_SIZE) {
+    RBModule(RB_SLEEP, RB_BAUD),
+    canModule(CAN_ENABLE, CAN_BAUD) {
   }
   void    init();
 /********************************  FUNCTIONS  *********************************/
