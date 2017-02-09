@@ -34,8 +34,9 @@ public:
   }
   void    init();
 /********************************  FUNCTIONS  *********************************/
-  void    updateData();
+  void    updateState();
   void    evaluateState();
+  void    logState();
   void    sendComms();
   void    sleep();
   bool    finishedSetup();

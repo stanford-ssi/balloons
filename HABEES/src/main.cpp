@@ -16,18 +16,18 @@ int main(void) {
   flightController.init();
 /***********************************  MAIN  ***********************************/
   while(true) {
-    flightController.updateData();
+    flightController.updateState();
     flightController.evaluateState();
+    flightController.logState();
     flightController.sendComms();
     flightController.sleep();
   }
 }
 /*********************************  CALLBACK  *********************************/
 bool ISBDCallback() {
-  if (flightController.finishedSetup()) {
-    flightController.updateData();
+    flightController.updateState();
     flightController.evaluateState();
+    flightController.logState();
     flightController.sleep();
-  }
   return true;
 }

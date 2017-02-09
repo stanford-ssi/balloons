@@ -38,11 +38,8 @@ void Avionics::init() {
  * -------------------
  * This function handles basic flight data collection.
  */
-void Avionics::updateData() {
-  if(!readData())        logAlert("unable to read Data", true);
-  if(!logData())         logAlert("unable to log Data", true);
-  if(compressData() < 0) logAlert("unable to compress Data", true);
-  if(!sendCAN())         logAlert("unable to send Data", true);
+void Avionics::updateState() {
+  if(!readData()) logAlert("unable to read Data", true);
   watchdog();
 }
 
@@ -56,6 +53,18 @@ void Avionics::evaluateState() {
   if(!debugState()) logAlert("unable to debug state", true);
   if(!runHeaters()) logAlert("unable to run heaters", true);
   if(!runCutdown()) logAlert("unable to run cutdown", true);
+  watchdog();
+}
+
+/*
+ * Function: logState
+ * -------------------
+ * This function logs the current data frame.
+ */
+void Avionics::logState() {
+  if(compressData() < 0) logAlert("unable to compress Data", true);
+  if(!logData())         logAlert("unable to log Data", true);
+  if(!sendCAN())         logAlert("unable to send Data", true);
   watchdog();
 }
 
