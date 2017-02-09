@@ -39,8 +39,10 @@ void Avionics::init() {
  * This function handles basic flight data collection.
  */
 void Avionics::updateData() {
-  if(!readData()) logAlert("unable to read Data", true);
-  if(!logData()) logAlert("unable to log Data", true);
+  if(!readData())        logAlert("unable to read Data", true);
+  if(!logData())         logAlert("unable to log Data", true);
+  if(compressData() < 0) logAlert("unable to compress Data", true);
+  if(!sendCAN())         logAlert("unable to send Data", true);
   watchdog();
 }
 
@@ -63,8 +65,6 @@ void Avionics::evaluateState() {
  * This function sends the current data frame down.
  */
 void Avionics::sendComms() {
-  if(compressData() < 0) logAlert("unable to compress Data", true);
-  if(!sendCAN())         logAlert("unable to communicate over CAN", true);
   if((millis() - data.COMMS_LAST) < COMMS_RATE) return;
   if(!sendSATCOMS())     logAlert("unable to communicate over RB", true);
   if(!sendAPRS())        logAlert("unable to communicate over APRS", true);
