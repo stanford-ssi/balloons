@@ -53,7 +53,7 @@ private:
   Adafruit_INA219 inaCutdown;
   Adafruit_INA219 inaHeater;
   uint16_t BUFFER_SIZE;
-  float    ASCENT_BUFFER[200];
+  float    ASCENT_BUFFER[200]; //FIX WHEN SOBER.
   double   ALTITUDE_CURR;
   double   ALTITUDE_LAST;
 };
