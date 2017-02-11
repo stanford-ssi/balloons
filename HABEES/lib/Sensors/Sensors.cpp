@@ -130,12 +130,29 @@ double Sensors::getPressure() {
   This function returns a sensor fused reading.
 */
 double Sensors::getAltitude() {
+  ALTITUDE_LAST = ALTITUDE_CURR;
   double altitude_1 = bme1.readAltitude(1013.25);
   double altitude_2 = bme2.readAltitude(1013.25);
-  if (altitude_1 >= -50 && altitude_2 >= -50) return (altitude_1 + altitude_2) / 2;
-  if (altitude_1 >= -50 && altitude_2 <= -50) return altitude_1;
-  if (altitude_2 >= -50 && altitude_1 <= -50) return altitude_2;
-  else return baro.getAltitude();
+  if (altitude_1 >= -50 && altitude_2 >= -50) ALTITUDE_CURR = (altitude_1 + altitude_2) / 2;
+  else if (altitude_1 >= -50 && altitude_2 <= -50) ALTITUDE_CURR = altitude_1;
+  else if (altitude_2 >= -50 && altitude_1 <= -50) ALTITUDE_CURR = altitude_2;
+  else ALTITUDE_CURR = baro.getAltitude();
+  return ALTITUDE_CURR;
+}
+
+/*
+  function: getAscentRate
+  ---------------------------------
+  This function returns the current ascent rate.
+*/
+double Sensors::getAscentRate() {
+  for (int i = 0; i < BUFFER_SIZE - 1; i++) ASCENT_BUFFER[i] = ASCENT_BUFFER[i + 1];
+  uint64_t ASCENT_RATE_LAST = ASCENT_BUFFER[BUFFER_SIZE - 1];
+  ASCENT_BUFFER[BUFFER_SIZE - 1] = (ALTITUDE_CURR - ALTITUDE_LAST) / ((millis() - ASCENT_RATE_LAST) / 1000.0);
+  ASCENT_RATE_LAST = millis();
+  float ascentRateTotal = 0;
+  for (int i = 0; i < BUFFER_SIZE; i++) ascentRateTotal += ASCENT_BUFFER[i];
+  return  ascentRateTotal / BUFFER_SIZE;
 }
 
 /*********************************  HELPERS  **********************************/

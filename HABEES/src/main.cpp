@@ -18,6 +18,7 @@ int main(void) {
   while(true) {
     flightController.updateState();
     flightController.evaluateState();
+    flightController.actuateState();
     flightController.logState();
     flightController.sendComms();
     flightController.sleep();
@@ -25,9 +26,10 @@ int main(void) {
 }
 /*********************************  CALLBACK  *********************************/
 bool ISBDCallback() {
-    flightController.updateState();
-    flightController.evaluateState();
-    flightController.logState();
-    flightController.sleep();
+  flightController.updateState();
+  flightController.evaluateState();
+  flightController.actuateState();
+  flightController.logState();
+  flightController.sleep();
   return true;
 }

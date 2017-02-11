@@ -46,10 +46,19 @@ void Avionics::updateState() {
 /*
  * Function: evaluateState
  * -------------------
- * This function intelligently reacts to the current data frame.
+ * This function intelligently calculates the current state.
  */
 void Avionics::evaluateState() {
   if(!calcState())  logAlert("unable to calculate state", true);
+  watchdog();
+}
+
+/*
+ * Function: actuateState
+ * -------------------
+ * This function intelligently reacts to the current data frame.
+ */
+void Avionics::actuateState() {
   if(!debugState()) logAlert("unable to debug state", true);
   if(!runHeaters()) logAlert("unable to run heaters", true);
   if(!runCutdown()) logAlert("unable to run cutdown", true);
@@ -75,8 +84,8 @@ void Avionics::logState() {
  */
 void Avionics::sendComms() {
   if((millis() - data.COMMS_LAST) < COMMS_RATE) return;
-  if(!sendSATCOMS())     logAlert("unable to communicate over RB", true);
-  if(!sendAPRS())        logAlert("unable to communicate over APRS", true);
+  if(!sendSATCOMS()) logAlert("unable to communicate over RB", true);
+  if(!sendAPRS()) logAlert("unable to communicate over APRS", true);
   data.COMMS_LAST = millis();
   watchdog();
 }
@@ -118,6 +127,7 @@ bool Avionics::readData() {
   data.TEMP_IN         = sensors.getTempIn();
   data.PRESS_BMP       = sensors.getPressure();
   data.ALTITUDE_BMP    = sensors.getAltitude();
+  data.ASCENT_RATE     = sensors.getAscentRate();
   data.LAT_GPS         = gpsModule.getLatitude();
   data.LONG_GPS        = gpsModule.getLongitude();
   data.ALTITUDE_GPS    = gpsModule.getAltitude();
@@ -136,7 +146,6 @@ bool Avionics::calcState() {
   calcVitals();
   calcDebug();
   calcCutdown();
-  calcAscent();
   return true;
 }
 
@@ -276,20 +285,6 @@ void Avionics::calcCutdown() {
     (data.ALTITUDE_LAST >= CUTDOWN_ALT) &&
     (data.ALTITUDE_BMP  >= CUTDOWN_ALT)
   ) data.SHOULD_CUTDOWN  = true;
-}
-
-/*
- * Function: calcAscent
- * -------------------
- * This function calculates the current ascent rate.
- */
-void Avionics::calcAscent() {
-  for (int i = 0; i < BUFFER_SIZE - 1; i++) data.ASCENT_BUFFER[i] = data.ASCENT_BUFFER[i + 1];
-  data.ASCENT_BUFFER[BUFFER_SIZE - 1] = (data.ALTITUDE_BMP - data.ALTITUDE_LAST) / ((millis() - data.ASCENT_RATE_LAST) / 1000.0);
-  data.ASCENT_RATE_LAST = millis();
-  float ascentRateTotal = 0;
-  for (int i = 0; i < BUFFER_SIZE; i++) ascentRateTotal += data.ASCENT_BUFFER[i];
-  data.ASCENT_RATE =  ascentRateTotal / BUFFER_SIZE;
 }
 
 /*

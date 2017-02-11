@@ -21,11 +21,12 @@
 class Sensors {
 public:
 /**********************************  SETUP  ***********************************/
-  Sensors(uint8_t VBAT_PIN_NUM, uint8_t BMP_CS1_NUM, uint8_t BMP_CS2_NUM, uint8_t THERMOCPL_CS_NUM) :
+  Sensors(uint8_t VBAT_PIN_NUM, uint8_t BMP_CS1_NUM, uint8_t BMP_CS2_NUM, uint8_t THERMOCPL_CS_NUM, uint16_t BUFFER_SIZE) :
     VBAT_PIN(VBAT_PIN_NUM),
     bme1(BMP_CS1_NUM),
     bme2(BMP_CS2_NUM),
-    thermocouple(THERMOCPL_CS_NUM) {
+    thermocouple(THERMOCPL_CS_NUM),
+    BUFFER_SIZE(BUFFER_SIZE) {
   }
   bool        init();
 /********************************  FUNCTIONS  *********************************/
@@ -36,6 +37,7 @@ public:
   double      getTempIn();
   double      getPressure();
   double      getAltitude();
+  double      getAscentRate();
 private:
 /*********************************  HELPERS  **********************************/
   void        convertDigits(uint8_t start, uint8_t digits);
@@ -50,6 +52,10 @@ private:
   Adafruit_INA219 inaRadio;
   Adafruit_INA219 inaCutdown;
   Adafruit_INA219 inaHeater;
+  uint16_t BUFFER_SIZE = 200; //MUST FIX WHEN SOBER
+  float    ASCENT_BUFFER[200];
+  double   ALTITUDE_CURR;
+  double   ALTITUDE_LAST;
 };
 
 #endif

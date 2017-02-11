@@ -27,7 +27,7 @@ public:
 /**********************************  SETUP  ***********************************/
   Avionics() :
     PCB(WATCHDOG_PIN, FAULT_PIN, HEATER_PIN, CUTDOWN_PIN, PID_SETPOINT, ANALOG_RES, ANALOG_MAX, LOOP_RATE),
-    sensors(VBAT_PIN, BMP_CS1, BMP_CS2, THERMOCPL_CS),
+    sensors(VBAT_PIN, BMP_CS1, BMP_CS2, THERMOCPL_CS, BUFFER_SIZE),
     gpsModule(GPS_ENABLE, GPS_BAUD, GPS_LOCK_TIME),
     RBModule(RB_SLEEP, RB_BAUD),
     canModule(CAN_ENABLE, CAN_BAUD) {
@@ -36,6 +36,7 @@ public:
 /********************************  FUNCTIONS  *********************************/
   void    updateState();
   void    evaluateState();
+  void    actuateState();
   void    logState();
   void    sendComms();
   void    sleep();

@@ -46,12 +46,10 @@ struct DataFrame {
   bool         DEBUG_STATE       =   true;
   bool         SHOULD_CUTDOWN    =  false;
   double       ALTITUDE_LAST     =      0;
-  uint64_t     ASCENT_RATE_LAST  =      0;
   uint64_t     COMMS_LAST        =      0;
   uint64_t     WATCHDOG_LAST     =      0;
   uint64_t     LOOP_START        =      0;
   uint16_t     COMMS_LENGTH      =      0;
-  float        ASCENT_BUFFER[BUFFER_SIZE];
 } ;
 
 #endif
