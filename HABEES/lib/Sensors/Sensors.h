@@ -52,7 +52,7 @@ private:
   Adafruit_INA219 inaRadio;
   Adafruit_INA219 inaCutdown;
   Adafruit_INA219 inaHeater;
-  uint16_t BUFFER_SIZE = 200; //MUST FIX WHEN SOBER
+  uint16_t BUFFER_SIZE;
   float    ASCENT_BUFFER[200];
   double   ALTITUDE_CURR;
   double   ALTITUDE_LAST;
