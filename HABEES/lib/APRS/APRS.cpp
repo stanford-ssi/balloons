@@ -11,22 +11,6 @@
 
 #include "APRS.h"
 
-static const uint8_t HDLC_FLAG = 0x7E;
-uint8_t NUM_HDLC_FLAGS = 50; //default number
-uint8_t NUM_SSIDS = 3; //default number
-static const uint8_t MAX_SSIDS = 4;
-bool USE_WIDE2_2 = false;
-static const int MAX_BUFFER_SIZE = 512; //bytes
-static const uint8_t BIT_STUFF_THRESHOLD = 5; //APRS protocol
-
-uint16_t crc = 0;
-uint8_t consecutiveOnes = 0;
-uint8_t bitMask= B00000000;
-uint8_t bitPos = 8;
-
-char extraData[BUFFER_SIZE];
-int16_t extraLen = 0;
-
 void latToStr(char * const s, const int size, float lat);
 void lonToStr(char * const s, const int size, float lon);
 APRS::APRS() {
