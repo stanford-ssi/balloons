@@ -14,9 +14,9 @@
 #include "Config.h"
 #include "Cutdown.h"
 #include "Data.h"
+#include "Sensors.h"
+#include "Hardware.h"
 #include <SD.h>
-#include <Sensors.h>
-#include <Hardware.h>
 #include <GPS.h>
 #include <RockBLOCK.h>
 #include <APRS.h>
@@ -26,8 +26,8 @@ class Avionics {
 public:
 /**********************************  SETUP  ***********************************/
   Avionics() :
-    PCB(WATCHDOG_PIN, FAULT_PIN, HEATER_PIN, CUTDOWN_PIN, PID_SETPOINT, ANALOG_RES, ANALOG_MAX, LOOP_RATE),
-    sensors(VBAT_PIN, BMP_CS1, BMP_CS2, THERMOCPL_CS, BUFFER_SIZE),
+    PCB(),
+    sensors(),
     gpsModule(GPS_ENABLE, GPS_BAUD, GPS_LOCK_TIME),
     RBModule(RB_SLEEP, RB_BAUD),
     canModule(CAN_ENABLE, CAN_BAUD) {

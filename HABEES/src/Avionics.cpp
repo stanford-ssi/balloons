@@ -231,7 +231,7 @@ bool Avionics::sendSATCOMS() {
 bool Avionics::sendAPRS() {
   logAlert("sending APRS message", false);
   radioModule.sendAdditionalData(COMMS_BUFFER, data.COMMS_LENGTH);
-  radioModule.sendPacket(data);
+  radioModule.sendPacket(data.TIME, data.LAT_GPS, data.LONG_GPS, data.ALTITUDE_LAST, data.HEADING_GPS, data.SPEED_GPS, data.DEBUG_STATE);
   return true;
 }
 

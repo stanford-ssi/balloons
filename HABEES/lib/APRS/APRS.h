@@ -12,7 +12,7 @@
 #ifndef APRS_H
 #define APRS_H
 #include <string>
-#include "../../src/Data.h"
+#include "../../src/Config.h"
 #include "afsk.h"
 #include <SoftwareSerial.h>
 
@@ -30,8 +30,8 @@ public:
     APRS();
     void setSSIDs();
     bool init();
-    void sendAdditionalData(const char* extData, uint16_t len);
-    void sendPacket(DataFrame &dataArr);
+    void sendAdditionalData(char* extData, uint16_t len);
+    void sendPacket(char* time, float lat, float lon, float altitude, uint16_t heading, float speed, bool debug);
     void sendPacketNoGPS(string data);
     void sendPacketNoGPS(char* data);
     int getPacketSize();

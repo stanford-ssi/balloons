@@ -50,14 +50,10 @@ bool APRS::init() {
     return false;
 }
 
-void APRS::sendPacket(DataFrame &dataFr) {
-    char* time = dataFr.TIME;
+void APRS::sendPacket(char* time, float lat, float lon, float altitude, uint16_t heading, float speed, bool debug) {
     const uint8_t dayOfMonth = (time[9]-'0')*10 + (time[10]-'0');
     const uint8_t hour = (time[0]-'0')*10 + (time[1]-'0');
     const uint8_t min = (time[3]-'0')*10 + (time[4]-'0');
-    const float lat = dataFr.LAT_GPS;
-    const float lon = dataFr.LONG_GPS;
-    const float altitude = dataFr.ALTITUDE_LAST;
 
     if(altitude > 5000) {
       USE_WIDE2_2 = false;
@@ -66,9 +62,6 @@ void APRS::sendPacket(DataFrame &dataFr) {
       USE_WIDE2_2 = true;
       NUM_HDLC_FLAGS = 2;
     }
-
-    const uint16_t heading = dataFr.HEADING_GPS;
-    const float speed = dataFr.SPEED_GPS;
 
     crc = 0xffff;
     consecutiveOnes = 0;
@@ -99,14 +92,13 @@ void APRS::sendPacket(DataFrame &dataFr) {
     APRS::loadString(MISSION_NUMBER);
     APRS::loadFooter();
     APRS::loadTrailingBits(bitPos);//load the trailing bits that might exist due to bitstuffing
-    if(dataFr.DEBUG_STATE) {
+    if(debug) {
         Serial.print("APRS Packet being transmitted of size: ");
         Serial.print(APRS::getPacketSize()/8);
         Serial.println("bytes");
     }
     afsk_modulate_packet(packet_buffer, APRS::getPacketSize(),(8-bitPos));
     }
-
 
 void APRS::sendPacketNoGPS(char* data) {
     crc = 0xffff;
@@ -138,7 +130,7 @@ void APRS::setSSIDs() {
     ssids[3].ssid_designator = 2;
 }
 
-void APRS::sendAdditionalData(const char* extData, uint16_t len) {
+void APRS::sendAdditionalData(char* extData, uint16_t len) {
     for(int i = 0; i < len; i++) {
       extraData[i] = extData[i];
     }

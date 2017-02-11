@@ -11,6 +11,7 @@
 #ifndef SENSORS_H
 #define SENSORS_H
 
+#include "Config.h"
 #include <SPI.h>
 #include <Adafruit_BMP280.h>
 #include <Adafruit_MPL3115A2.h>
@@ -21,12 +22,10 @@
 class Sensors {
 public:
 /**********************************  SETUP  ***********************************/
-  Sensors(uint8_t VBAT_PIN_NUM, uint8_t BMP_CS1_NUM, uint8_t BMP_CS2_NUM, uint8_t THERMOCPL_CS_NUM, uint16_t BUFFER_SIZE) :
-    VBAT_PIN(VBAT_PIN_NUM),
-    bme1(BMP_CS1_NUM),
-    bme2(BMP_CS2_NUM),
-    thermocouple(THERMOCPL_CS_NUM),
-    BUFFER_SIZE(BUFFER_SIZE) {
+  Sensors() :
+    bme1(BMP_CS1),
+    bme2(BMP_CS2),
+    thermocouple(THERMOCPL_CS) {
   }
   bool        init();
 /********************************  FUNCTIONS  *********************************/
@@ -43,7 +42,6 @@ private:
   void        convertDigits(uint8_t start, uint8_t digits);
   void        convertYear(uint8_t start, int year);
 /*********************************  OBJECTS  **********************************/
-  uint8_t VBAT_PIN;
   char buf[20] = {'\0'};
   Adafruit_BMP280 bme1;
   Adafruit_BMP280 bme2;
@@ -52,8 +50,7 @@ private:
   Adafruit_INA219 inaRadio;
   Adafruit_INA219 inaCutdown;
   Adafruit_INA219 inaHeater;
-  uint16_t BUFFER_SIZE;
-  float    ASCENT_BUFFER[200]; //FIX WHEN SOBER.
+  float    ASCENT_BUFFER[BUFFER_SIZE];
   double   ALTITUDE_CURR;
   double   ALTITUDE_LAST;
 };
