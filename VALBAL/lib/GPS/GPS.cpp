@@ -1,6 +1,6 @@
 /*
   Stanford Student Space Initiative
-  Balloons | HABEES | February 2017
+  Balloons | VALBAL | February 2017
   Davy Ragland | dragland@stanford.edu
   Aria Tedjarati | satedjarati@stanford.edu
 

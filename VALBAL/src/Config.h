@@ -1,6 +1,6 @@
 /*
   Stanford Student Space Initiative
-  Balloons | VALBAL | January 2017
+  Balloons | VALBAL | February 2017
   Davy Ragland | dragland@stanford.edu
 
   File: Config.h
@@ -17,7 +17,7 @@
 
 /****************************  EDITABLE CONSTANTS  ****************************/
 static const char      MISSION_NUMBER[]   = "SSI-51";
-static const char      CSV_DATA_HEADER[]  = "TIME,LOOP_RATE,VOLTAGE,CURRENT,ALTITUDE_BMP,ASCENT_RATE,TEMP_IN,TEMP_EXT,LAT_GPS,LONG_GPS,SPEED_GPS,HEADING_GPS,ALTITUDE_GPS,PRESS_BMP,RB_SENT_COMMS,CUTDOWN_STATE";
+static const char      CSV_DATA_HEADER[]  = "TIME,LOOP_RATE,VOLTAGE,CURRENT,ALTITUDE_BMP,ASCENT_RATE,TEMP_IN,LAT_GPS,LONG_GPS,SPEED_GPS,HEADING_GPS,ALTITUDE_GPS,PRESS_BMP,RB_SENT_COMMS,CUTDOWN_STATE";
 
 static const bool      CUTDOWN_ALT_ENABLE =  true;
 static const bool      CUTDOWN_GPS_ENABLE =  true;
@@ -44,15 +44,15 @@ static const double    PID_SETPOINT       =     0;
 
 /*****************************  TEENSY PIN OUTS  ******************************/
 static const uint8_t   RB_SLEEP                =  14;  // RockBLOCK sleep pin
-static const uint8_t   CHIP_SELECT             =  10;  // SD Card Chip Select Pin
+static const uint8_t   SD_CS                   =  10;  // SD Card Chip Select Pin
 static const uint8_t   BALLAST_REVERSE         =   5;   // Ballast Reverse Pin
 static const uint8_t   BALLAST_FORWARD         =  21;   // Ballast Forward Pin
 static const uint8_t   VALVE_REVERSE           =   6;
 static const uint8_t   VALVE_FORWARD           =   0;
 static const uint8_t   HEATER_INTERNAL_STRONG  =   4;  // Heater PWM for internal payload
 static const uint8_t   HEATER_INTERNAL_WEAK    =   3;
-static const uint8_t   V_BATT                  = A14; // Analog pin for reading voltage of battery
-static const uint8_t   LED_PIN                 =  26;
+static const uint8_t   VBAT_PIN                = A14; // Analog pin for reading voltage of battery
+static const uint8_t   FAULT_PIN               =  26;
 static const uint8_t   BMP_CS_ONE              =   9;
 static const uint8_t   BMP_CS_TWO              =  15;
 static const uint8_t   BMP_CS_THREE            =   5;

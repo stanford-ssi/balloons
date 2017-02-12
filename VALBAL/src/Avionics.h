@@ -1,6 +1,6 @@
 /*
   Stanford Student Space Initiative
-  Balloons | HABEES | February 2017
+  Balloons | VALBAL | February 2017
   Davy Ragland | dragland@stanford.edu
 
   File: avionics.h
@@ -16,11 +16,10 @@
 #include "Data.h"
 #include "Sensors.h"
 #include "Hardware.h"
+#include "Controller.h"
 #include <SD.h>
 #include <GPS.h>
 #include <RockBLOCK.h>
-#include <APRS.h>
-#include <CAN.h>
 
 class Avionics {
 public:
@@ -29,9 +28,7 @@ public:
     PCB(),
     sensors(),
     gpsModule(GPS_ENABLE, GPS_BAUD, GPS_LOCK_TIME),
-    canModule(CAN_ENABLE, CAN_BAUD),
-    RBModule(RB_SLEEP, RB_BAUD),
-    radioModule() {
+    RBModule(RB_SLEEP, RB_BAUD) {
   }
   void    init();
 /********************************  FUNCTIONS  *********************************/
@@ -49,20 +46,18 @@ private:
   bool    calcState();
   bool    debugState();
   bool    runHeaters();
+  bool    runValve();
+  bool    runBalast();
   bool    runCutdown();
-  bool    sendCAN();
   bool    sendSATCOMS();
-  bool    sendAPRS();
   void    parseCommand(int16_t len);
   void    calcVitals();
   void    calcDebug();
   void    calcCutdown();
   void    calcAscent();
-  void    displayState();
   void    printHeader();
   void    logHeader();
   void    logAlert(const char*, bool fatal);
-  void    watchdog();
   void    printState();
   bool    logData();
   int16_t compressData();
@@ -72,10 +67,9 @@ private:
   File dataFile;
   Hardware PCB;
   Sensors sensors;
+  Controller computer;
   GPS gpsModule;
-  CAN canModule;
   RockBLOCK RBModule;
-  APRS radioModule;
 };
 
 #endif

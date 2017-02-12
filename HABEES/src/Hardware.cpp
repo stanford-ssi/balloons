@@ -1,6 +1,6 @@
 /*
   Stanford Student Space Initiative
-  Balloons | HABEES | January 2017
+  Balloons | HABEES | February 2017
   Davy Ragland | dragland@stanford.edu
 
   File: Hardware.cpp
@@ -57,7 +57,7 @@ void Hardware::faultLED() {
 }
 
 /*
-  function: cutDown
+  function: heater
   ---------------------------------
   This function runs the PID heater within the board.
 */

@@ -1,6 +1,6 @@
 /*
   Stanford Student Space Initiative
-  Balloons | HABEES | February 2017
+  Balloons | VALBAL | February 2017
   Davy Ragland | dragland@stanford.edu
 
   File: data.h
@@ -15,14 +15,13 @@
 
 /**********************************  DATA  ************************************/
 struct DataFrame {
-  char         TIME[20]          = "##:##:## ## ## ####";
+  uint32_t     TIME              =      0;
   uint16_t     LOOP_RATE         =      0;
   double       VOLTAGE           =      0;
   double       CURRENT           =      0;
   double       ALTITUDE_BMP      =      0;
   double       ASCENT_RATE       =      0;
-  double       TEMP_IN           =      0;
-  double       TEMP_EXT          =      0;
+  double       TEMP              =      0;
   float        LAT_GPS           =      0;
   float        LONG_GPS          =      0;
   double       SPEED_GPS         =      0;

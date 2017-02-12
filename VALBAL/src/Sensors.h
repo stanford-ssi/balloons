@@ -1,7 +1,8 @@
 /*
   Stanford Student Space Initiative
-  Balloons | HABEES | February 2017
+  Balloons | VALBAL | February 2017
   Davy Ragland | dragland@stanford.edu
+  Michal Adamkiewicz | mikadam@stanford.edu
 
   File: Sensors.h
   --------------------------
@@ -14,42 +15,33 @@
 #include "Config.h"
 #include <SPI.h>
 #include <Adafruit_BMP280.h>
-#include <Adafruit_MPL3115A2.h>
-#include <Adafruit_MAX31855.h>
-#include <Adafruit_INA219.h>
-#include <TimeLib.h>
 
 class Sensors {
 public:
+
 /**********************************  SETUP  ***********************************/
   Sensors() :
-    bme1(BMP_CS1),
-    bme2(BMP_CS2),
-    thermocouple(THERMOCPL_CS) {
+    bme1(BMP_CS_ONE),
+    bme2(BMP_CS_TWO),
+    bme3(BMP_CS_THREE),
+    bme4(BMP_CS_FOUR) {
   }
-  bool        init();
+  bool     init();
 /********************************  FUNCTIONS  *********************************/
-  const char* getTime();
-  double      getVoltage();
-  double      getCurrent();
-  double      getTempOut();
-  double      getTempIn();
-  double      getPressure();
-  double      getAltitude();
-  double      getAscentRate();
+  uint32_t getTime();
+  double   getVoltage();
+  double   getCurrent();
+  double   getTemp();
+  double   getPressure();
+  double   getAltitude();
+  double   getAscentRate();
 private:
 /*********************************  HELPERS  **********************************/
-  void        convertDigits(uint8_t start, uint8_t digits);
-  void        convertYear(uint8_t start, int year);
 /*********************************  OBJECTS  **********************************/
-  char buf[20] = {'\0'};
   Adafruit_BMP280 bme1;
   Adafruit_BMP280 bme2;
-  Adafruit_MPL3115A2 baro = Adafruit_MPL3115A2();
-  Adafruit_MAX31855 thermocouple;
-  Adafruit_INA219 inaRadio;
-  Adafruit_INA219 inaCutdown;
-  Adafruit_INA219 inaHeater;
+  Adafruit_BMP280 bme3;
+  Adafruit_BMP280 bme4;
   float    ASCENT_BUFFER[BUFFER_SIZE];
   double   ALTITUDE_CURR;
   double   ALTITUDE_LAST;

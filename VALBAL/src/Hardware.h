@@ -1,7 +1,8 @@
 /*
   Stanford Student Space Initiative
-  Balloons | HABEES | February 2017
+  Balloons | VALBAL | February 2017
   Davy Ragland | dragland@stanford.edu
+  Matthew Tan | mratan@stanford.edu
 
   File: Hardware.h
   --------------------------
@@ -12,7 +13,6 @@
 #define HARDWARE_H
 
 #include "Config.h"
-#include <Adafruit_MCP23017.h>
 #include <PID_v1.h>
 
 class Hardware {
@@ -23,18 +23,17 @@ public:
   }
   void init();
 /********************************  FUNCTIONS  *********************************/
-  void writeLED(uint8_t PIN, bool green);
   void faultLED();
   void heater(double temp);
+  void valve(bool on);
+  void balast(bool on);
   void cutDown(bool on);
-  void watchdog();
 private:
 /*********************************  OBJECTS  **********************************/
   double   PIDSetVar;
   double   PIDOutVar;
   double   PIDTempVar;
   PID pid;
-  Adafruit_MCP23017 mcp;
 };
 
 #endif

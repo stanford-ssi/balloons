@@ -1,6 +1,6 @@
 /*
   Stanford Student Space Initiative
-  Balloons | HABEES | January 2017
+  Balloons | HABEES | February 2017
   Davy Ragland | dragland@stanford.edu
 
   File: main.cpp
@@ -11,27 +11,27 @@
 #include "Avionics.h"
 
 /***********************************  BOOT  ***********************************/
-Avionics flightController;
+Avionics HABEES;
 int main(void) {
-  flightController.init();
+  HABEES.init();
 /***********************************  MAIN  ***********************************/
   while(true) {
-    flightController.updateState();
-    flightController.evaluateState();
-    flightController.actuateState();
-    flightController.logState();
-    flightController.sendComms();
-    flightController.sleep();
+    HABEES.updateState();
+    HABEES.evaluateState();
+    HABEES.actuateState();
+    HABEES.logState();
+    HABEES.sendComms();
+    HABEES.sleep();
   }
 }
 /*********************************  CALLBACK  *********************************/
 bool ISBDCallback() {
-  if(flightController.finishedSetup()) {
-    flightController.updateState();
-    flightController.evaluateState();
-    flightController.actuateState();
-    flightController.logState();
-    flightController.sleep();
+  if(HABEES.finishedSetup()) {
+    HABEES.updateState();
+    HABEES.evaluateState();
+    HABEES.actuateState();
+    HABEES.logState();
+    HABEES.sleep();
   }
   return true;
 }
