@@ -36,6 +36,7 @@ bool RockBLOCK::init() {
 */
 int16_t RockBLOCK::writeRead(char* buff, uint16_t len) {
   if(len > BUFFER_SIZE) return -1;
+  if(len < 0) return -1;
   size_t  bufferSize = sizeof(rxBuffer);
   write(buff, len);
   delay(200);

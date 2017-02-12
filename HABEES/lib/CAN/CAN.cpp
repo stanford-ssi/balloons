@@ -34,6 +34,7 @@ bool CAN::init() {
 */
 int16_t CAN::write(char* buff, uint16_t len) {
   if(len > BUFFER_SIZE) return -1;
+  if(len < 0) return -1;
   static CAN_message_t msg;
   msg.len = 8;
   msg.id = 0x000;

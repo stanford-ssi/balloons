@@ -11,6 +11,7 @@
 
 #include "APRS.h"
 
+/**********************************  SETUP  ***********************************/
 void latToStr(char * const s, const int size, float lat);
 void lonToStr(char * const s, const int size, float lon);
 APRS::APRS() {
@@ -18,7 +19,7 @@ APRS::APRS() {
    packet_size = 0;
    ssids = new SSID[MAX_SSIDS];
 }
-/**********************************  SETUP  ***********************************/
+
 /*
   function: init
   ---------------------------------
@@ -34,7 +35,7 @@ bool APRS::init() {
     return false;
 }
 
-void APRS::sendPacket(char* time, float lat, float lon, float altitude, uint16_t heading, float speed, bool debug) {
+int16_t APRS::sendPacket(char* time, float lat, float lon, float altitude, uint16_t heading, float speed, bool debug) {
     const uint8_t dayOfMonth = (time[9]-'0')*10 + (time[10]-'0');
     const uint8_t hour = (time[0]-'0')*10 + (time[1]-'0');
     const uint8_t min = (time[3]-'0')*10 + (time[4]-'0');
@@ -82,7 +83,8 @@ void APRS::sendPacket(char* time, float lat, float lon, float altitude, uint16_t
         Serial.println("bytes");
     }
     afsk_modulate_packet(packet_buffer, APRS::getPacketSize(),(8-bitPos));
-    }
+    return 0;
+}
 
 void APRS::sendPacketNoGPS(char* data) {
     crc = 0xffff;
@@ -114,11 +116,14 @@ void APRS::setSSIDs() {
     ssids[3].ssid_designator = 2;
 }
 
-void APRS::sendAdditionalData(char* extData, uint16_t len) {
-    for(int i = 0; i < len; i++) {
-      extraData[i] = extData[i];
-    }
-    extraLen = len;
+int16_t APRS::sendAdditionalData(char* extData, uint16_t len) {
+  if(len > BUFFER_SIZE) return -1;
+  if(len < 0) return -1;
+  for(int i = 0; i < len; i++) {
+    extraData[i] = extData[i];
+  }
+  extraLen = len;
+  return 0;
 }
 
 void APRS::loadHeader() {
