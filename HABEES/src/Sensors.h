@@ -53,6 +53,8 @@ private:
   float    ASCENT_BUFFER[BUFFER_SIZE];
   double   ALTITUDE_CURR;
   double   ALTITUDE_LAST;
+  uint64_t ASCENT_RATE_LAST;
+
 };
 
 #endif

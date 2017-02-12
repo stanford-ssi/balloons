@@ -146,7 +146,6 @@ double Sensors::getAltitude() {
   This function returns the current ascent rate.
 */
 double Sensors::getAscentRate() {
-  uint64_t ASCENT_RATE_LAST = ASCENT_BUFFER[BUFFER_SIZE - 1];
   float ascentRateTotal = 0;
   for (int i = 0; i < BUFFER_SIZE - 1; i++) ASCENT_BUFFER[i] = ASCENT_BUFFER[i + 1];
   ASCENT_BUFFER[BUFFER_SIZE - 1] = (ALTITUDE_CURR - ALTITUDE_LAST) / ((millis() - ASCENT_RATE_LAST) / 1000.0);
