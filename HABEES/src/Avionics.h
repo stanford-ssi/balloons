@@ -29,8 +29,9 @@ public:
     PCB(),
     sensors(),
     gpsModule(GPS_ENABLE, GPS_BAUD, GPS_LOCK_TIME),
+    canModule(CAN_ENABLE, CAN_BAUD),
     RBModule(RB_SLEEP, RB_BAUD),
-    canModule(CAN_ENABLE, CAN_BAUD) {
+    radioModule() {
   }
   void    init();
 /********************************  FUNCTIONS  *********************************/
@@ -72,9 +73,9 @@ private:
   Hardware PCB;
   Sensors sensors;
   GPS gpsModule;
+  CAN canModule;
   RockBLOCK RBModule;
   APRS radioModule;
-  CAN canModule;
 };
 
 #endif

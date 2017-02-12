@@ -26,10 +26,12 @@ int main(void) {
 }
 /*********************************  CALLBACK  *********************************/
 bool ISBDCallback() {
-  flightController.updateState();
-  flightController.evaluateState();
-  flightController.actuateState();
-  flightController.logState();
-  flightController.sleep();
+  if(flightController.finishedSetup()) {
+    flightController.updateState();
+    flightController.evaluateState();
+    flightController.actuateState();
+    flightController.logState();
+    flightController.sleep();
+  }
   return true;
 }
