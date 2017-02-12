@@ -2,7 +2,7 @@
 ###A modular flight controller with payload interface for high altitude balloons
 
 #Flight States:
-The avionics uses an Event Driven Programming model in order to clearly transition between states of operation.
+The avionics uses an Event Driven model in order to clearly transition between states of operation.
 
 #### States
 1. Pre-Launch  
@@ -16,6 +16,7 @@ The avionics uses an Event Driven Programming model in order to clearly transiti
 
 #Code Architecture:
 The avionics flight software operates on a read-eval loop in order to change states and respond to its environment.
+The avionics flight software was written in compliance with NASA JPL's  Safety-Critical Code standards.
 
 #### Files
 `main.cpp` - Start point of flight controller.
