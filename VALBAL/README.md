@@ -33,7 +33,7 @@ The avionics flight software was written in compliance with NASA JPL's  Safety-C
 
 `Hardware` - Interface to PCB mechatronics.
 
-`controller` - Interface to Feedback control algorithm.
+`Controller` - Interface to feedback control algorithm.
 
 #Implementation Details:
 Here is the current status of the code:

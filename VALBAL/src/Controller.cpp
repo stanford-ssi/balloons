@@ -2,8 +2,10 @@
   Stanford Student Space Initiative
   Balloons | VALBAL | February 2017
   Davy Ragland | dragland@stanford.edu
+  Aria Tedjarati | satedjarati@stanford.edu
   Ella Hofmann-Coyle | ellahofm@stanford.edu
   Claire Huang | chuang20@stanford.edu
+  Joan Creus-Costa | jcreus@stanford.edu
 
   File: Controller.cpp
   --------------------------
