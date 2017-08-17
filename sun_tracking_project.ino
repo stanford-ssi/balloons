@@ -8,13 +8,13 @@
 /* based on the latitude and longitude of BEND, OR, the sun will have the following angles on aug 21, 2017 at 1000: 
  *  TODO: update with actual launchsite data
 */
-
-float AZIMUTH = 203.43; //Azimuth is measured clockwise from true north to the point on the horizon directly below the object.
+#define BNO055_SAMPLERATE_DELAY_MS (100)
+float AZIMUTH = 150; //Azimuth is measured clockwise from true north to the point on the horizon directly below the object.
 int AIN1 = 14;
 int AIN2 = 15;
 int PULSE_LENGTH = 4094;
 int PWM_CHANNEL = 3;
-int PWM_CHANNEL_TEST = 1;
+int PWM_CHANNEL_TEST = 1; 
 int OUTPUT_ENABLE = 6;
 int HBRIDGE_STANDBY = 13;
 Adafruit_PWMServoDriver pwmdriver = Adafruit_PWMServoDriver();
@@ -50,6 +50,7 @@ void setup() {
 void loop() {
   digitalWrite(HBRIDGE_STANDBY, HIGH);
   ControlMotor();
+  delay(BNO055_SAMPLERATE_DELAY_MS);
 }
 
 /*todo: adjust to rotate correctly*/
@@ -61,29 +62,40 @@ void ControlMotor() { //todo
 
   //heading: 0° to 360° (turning clockwise increases values)
   float heading = (float)event.orientation.z;
+  heading += 180;
   if (heading > AZIMUTH) { //BNO055 has rotated farther clockwise than the sun
-     driveCounterClockwise();
-  } else if (AZIMUTH > heading) { //BNO055 is behind the sun 
+    Serial.print((float)(event.orientation.z + 180));
+    Serial.println(F(""));
+    Serial.println("azimuth is less than heading");
+    driveCounterClockwise();
+  } else if (AZIMUTH > heading) { //BNO055 is behind the sun
+    Serial.print((float)(event.orientation.z + 180));
+    Serial.println(F(""));
+    Serial.println("Azimuth is greater than heading"); 
     driveClockwise();
   } else { //gopro is pointing at the sun
+    Serial.println("Azimuth is equal to heading");
     keepMotorStill();
   }
 }
 
 void driveClockwise() {
   pwmdriver.setPWM(PWM_CHANNEL, 0, PULSE_LENGTH);
+  Serial.println("driving clockwise");
   digitalWrite(AIN1, HIGH);
   digitalWrite(AIN2, LOW);
 }
 
 void driveCounterClockwise() {
   pwmdriver.setPWM(PWM_CHANNEL, 0, PULSE_LENGTH);
+  Serial.println("driving counterclockwise");
   digitalWrite(AIN1, LOW);
   digitalWrite(AIN2, HIGH);
 }
 
 void keepMotorStill() {
   pwmdriver.setPWM(PWM_CHANNEL, 0, 0);
+  Serial.println("stopping");
   digitalWrite(AIN1, LOW);
   digitalWrite(AIN2, LOW);
 }
