@@ -4,6 +4,7 @@
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BNO055.h>
 #include <utility/imumaths.h>
+#include <EEPROM.h>
 
 /* based on the latitude and longitude of BEND, OR, the sun will have the following angles on aug 21, 2017 at 1000: 
  *  TODO: update with actual launchsite data
@@ -27,7 +28,7 @@ int DRIVE_COUNTERCLOCKWISE = 7;
 void setup() {
   //define motor driver input pins
   pinMode(AIN1, OUTPUT);
-  pinMode(AIN2, INPUT);
+  pinMode(AIN2, OUTPUT);
   pinMode(OUTPUT_ENABLE, OUTPUT);
   pinMode(HBRIDGE_STANDBY, OUTPUT);
 
@@ -43,14 +44,32 @@ void setup() {
     Serial.print("Ooops, no BNO055 detected ... Check your wiring or I2C ADDR!");
     while(1);
   }
+
+  delay(1000);
   /* Use external crystal for better accuracy */
   bno.setExtCrystalUse(true);
+
+  
 }
 
 void loop() {
   digitalWrite(HBRIDGE_STANDBY, HIGH);
   ControlMotor();
   delay(BNO055_SAMPLERATE_DELAY_MS);
+  displayCalibration();
+}
+
+void displayCalibration () {
+  uint8_t sys, gyro, accel, mag = 0;
+  bno.getCalibration(&sys, &gyro, &accel, &mag);
+  Serial.print(F("Calibration: "));
+  Serial.print(sys, DEC);
+  Serial.print(F(" "));
+  Serial.print(gyro, DEC);
+  Serial.print(F(" "));
+  Serial.print(accel, DEC);
+  Serial.print(F(" "));
+  Serial.println(mag, DEC);
 }
 
 /*todo: adjust to rotate correctly*/
@@ -61,15 +80,14 @@ void ControlMotor() { //todo
   bno.getEvent(&event);
 
   //heading: 0° to 360° (turning clockwise increases values)
-  float heading = (float)event.orientation.z;
-  heading += 180;
+  float heading = (float)event.orientation.x;
   if (heading > AZIMUTH) { //BNO055 has rotated farther clockwise than the sun
-    Serial.print((float)(event.orientation.z + 180));
+    Serial.print((float)(event.orientation.x));
     Serial.println(F(""));
     Serial.println("azimuth is less than heading");
     driveCounterClockwise();
   } else if (AZIMUTH > heading) { //BNO055 is behind the sun
-    Serial.print((float)(event.orientation.z + 180));
+    Serial.print((float)(event.orientation.x));
     Serial.println(F(""));
     Serial.println("Azimuth is greater than heading"); 
     driveClockwise();
@@ -98,4 +116,84 @@ void keepMotorStill() {
   Serial.println("stopping");
   digitalWrite(AIN1, LOW);
   digitalWrite(AIN2, LOW);
+}
+
+/*automatically load in BNO055 calibration*/
+
+void loadCalibrationConstants(){
+
+  int eeAddress = 0;
+  long bnoID;
+  bool foundCalib = false;
+
+  EEPROM.get(eeAddress, bnoID);
+
+  adafruit_bno055_offsets_t calibrationData;
+  sensor_t sensor;
+
+  /*
+  *  Look for the sensor's unique ID at the beginning oF EEPROM.
+  *  This isn't foolproof, but it's better than nothing.
+  */
+  bno.getSensor(&sensor);
+  if (bnoID != sensor.sensor_id)
+  {
+      Serial.println("\nNo Calibration Data for this sensor exists in EEPROM");
+      delay(500);
+  }
+  else
+  {
+      Serial.println("\nFound Calibration for this sensor in EEPROM.");
+      eeAddress += sizeof(long);
+      EEPROM.get(eeAddress, calibrationData);
+
+      Serial.println("\n\nRestoring Calibration data to the BNO055...");
+      bno.setSensorOffsets(calibrationData);
+
+      Serial.println("\n\nCalibration data loaded into BNO055");
+      foundCalib = true;
+  }
+
+  delay(1000);
+    
+  sensors_event_t event;
+  bno.getEvent(&event);
+  if (foundCalib){
+    Serial.println("Move sensor slightly to calibrate magnetometers");
+    while (!bno.isFullyCalibrated())
+    {
+        bno.getEvent(&event);
+        delay(BNO055_SAMPLERATE_DELAY_MS);
+    }
+    
+    Serial.println("\nFully calibrated!");
+    Serial.println("--------------------------------");
+    Serial.println("Calibration Results: ");
+    adafruit_bno055_offsets_t newCalib;
+    bno.getSensorOffsets(newCalib);
+  }
+}
+
+void saveCalibrationConstants(){
+
+  if(bno.isFullyCalibrated()){
+    Serial.println("Calibration Results: ");
+    adafruit_bno055_offsets_t newCalib;
+    bno.getSensorOffsets(newCalib);
+
+    Serial.println("\n\nStoring calibration data to EEPROM...");
+
+    int eeAddress = 0;
+    sensor_t sensor;
+    bno.getSensor(&sensor);
+    long bnoID = sensor.sensor_id;
+
+    EEPROM.put(eeAddress, bnoID);
+
+    eeAddress += sizeof(long);
+    EEPROM.put(eeAddress, newCalib);
+    Serial.println("Data stored to EEPROM.");
+
+    Serial.println("\n--------------------------------\n");
+  }
 }
