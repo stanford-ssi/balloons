@@ -48,11 +48,20 @@ void setup() {
   delay(1000);
   /* Use external crystal for better accuracy */
   bno.setExtCrystalUse(true);
-
   
 }
 
 void loop() {
+  if(Serial.available()) {
+    char b = Serial.read();
+    switch (b) {
+      case 'l': 
+      loadCalibrationConstants();
+      break;
+      case 's': saveCalibrationConstants();
+      break;
+    }
+  }
   digitalWrite(HBRIDGE_STANDBY, HIGH);
   ControlMotor();
   delay(BNO055_SAMPLERATE_DELAY_MS);
@@ -160,11 +169,11 @@ void loadCalibrationConstants(){
   bno.getEvent(&event);
   if (foundCalib){
     Serial.println("Move sensor slightly to calibrate magnetometers");
-    while (!bno.isFullyCalibrated())
-    {
-        bno.getEvent(&event);
-        delay(BNO055_SAMPLERATE_DELAY_MS);
-    }
+//    while (!bno.isFullyCalibrated())
+//    {
+//        bno.getEvent(&event);
+//        delay(BNO055_SAMPLERATE_DELAY_MS);
+//    }
     
     Serial.println("\nFully calibrated!");
     Serial.println("--------------------------------");
